@@ -1,0 +1,9 @@
+# add to .gitignore (project root) if not already there
+venv/
+.env
+__pycache__/
+*.db
+node_modules/
+dist/
+.venv/
+*.pyc
