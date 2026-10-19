@@ -1,10 +1,19 @@
 # app/main.py
 # Entry point: uvicorn app.main:app --reload
+# SHARED FILE: edit ONLY your own "slot" lines, never anyone else's.
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.database import check_connection
-from app.auction.router import router as auction_router
+
+# ---- router imports ----
+# [slot: admin import]
+
+# [slot: vendor import]
+
+# [slot: auction import]
+
+# [slot: audit import]
 
 app = FastAPI(title="Smart Tender System API")
 
@@ -16,12 +25,19 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(auction_router)
+# ---- router registration ----
+# [slot: admin router]
+
+# [slot: vendor router]
+
+# [slot: auction router]
+
+# [slot: audit router]
 
 
 @app.get("/")
 def health():
-    return {"status": "ok", "module": "auction-engine"}
+    return {"status": "ok"}
 
 
 @app.get("/db-check")
