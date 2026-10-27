@@ -7,10 +7,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.database import check_connection
 
 # ---- router imports ----
-from app.auction.router import router as auction_router
+ 
 # [slot: vendor import]
 
 # [slot: auction import]
+from app.auction.router import router as auction_router
 
 # [slot: audit import]
 

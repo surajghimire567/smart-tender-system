@@ -6,8 +6,8 @@
 from datetime import datetime, timedelta, timezone
 
 from sqlalchemy import (
-    CheckConstraint, DateTime, ForeignKeyConstraint, Integer, String, Text,
-    UniqueConstraint, event,
+    CheckConstraint, DateTime, ForeignKeyConstraint,Index, Integer, String, Text,
+    UniqueConstraint, event,text
 )
 from sqlalchemy.orm import Mapped, Session, mapped_column, validates
 
@@ -33,6 +33,10 @@ class Bid(Base):
             ["revision_of", "tender_id", "vendor_id"],
             ["bids.id", "bids.tender_id", "bids.vendor_id"],
             name="fk_bids_revision_same_owner",
+        ),
+        Index(
+            "uq_bids_one_original_per_vendor", "tender_id", "vendor_id",
+            unique=True, postgresql_where=text("revision_of IS NULL"),
         ),
     )
 
