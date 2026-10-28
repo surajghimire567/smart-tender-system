@@ -11,6 +11,9 @@ from app.auction import crypto, service
 from app.auction.models import Bid
 from app.auction.schemas import BidCreate, BidReceiptOut, ReceiptCheckOut, SealedBidOut
 from app.database import get_db
+from app.auction.schemas import (
+    BidCreate, BidHistoryOut, BidReceiptOut, BidRevise, ReceiptCheckOut, SealedBidOut,
+)
 
 router = APIRouter(prefix="/auction", tags=["Auction Engine"])
 
@@ -97,3 +100,40 @@ def check_receipt(
         return service.check_receipt(db, bid_hash)
     except service.ReceiptNotFound as e:
         raise HTTPException(status_code=404, detail=str(e))
+    # ---- Day 4: revise a bid = INSERT a new row (there is NO PUT / PATCH / DELETE) ----
+@router.post("/bids/{bid_id}/revisions", response_model=BidReceiptOut, status_code=201)
+def revise_bid(
+    body: BidRevise,
+    request: Request,
+    bid_id: int = Path(..., gt=0),
+    db: Session = Depends(get_db),
+    x_device_fingerprint: str | None = Header(default=None, max_length=255),
+):
+    """Seal a NEW amount as a new row pointing at bid_id. The old row is never touched."""
+    try:
+        bid = service.revise_bid(
+            db, bid_id, body,
+            ip_address=request.client.host if request.client else None,
+            device_fingerprint=x_device_fingerprint,
+        )
+    except service.BidRejected as e:
+        raise HTTPException(status_code=e.status_code, detail=str(e))
+    return BidReceiptOut(
+        bid_id=bid.id,
+        tender_id=bid.tender_id,
+        vendor_id=bid.vendor_id,
+        bid_hash=bid.bid_hash,
+        submitted_at=bid.submitted_at_iso(),
+        revision_of=bid.revision_of,
+        message="Revision sealed as a new bid. Save this NEW receipt; only your latest bid counts.",
+    )
+
+
+# ---- Day 4: revision history (receipts and times, NO amounts) ----
+@router.get("/bids/{bid_id}/history", response_model=BidHistoryOut)
+def bid_history(bid_id: int = Path(..., gt=0), db: Session = Depends(get_db)):
+    """Original -> every revision -> current, from any bid id in the chain."""
+    try:
+        return service.bid_history(db, bid_id)
+    except service.BidRejected as e:
+        raise HTTPException(status_code=e.status_code, detail=str(e))

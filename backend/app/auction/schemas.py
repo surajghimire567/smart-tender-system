@@ -39,6 +39,7 @@ class BidReceiptOut(BaseModel):
     vendor_id: int
     bid_hash: str
     submitted_at: str      # the EXACT UTC string that went into the hash
+    revision_of: int | None = None   # Day 4: set when this receipt is for a revision
     message: str
 
 
@@ -48,3 +49,31 @@ class ReceiptCheckOut(BaseModel):
     submitted_at: str
     integrity_ok: bool     # stored token + stored hash still agree
     superseded: bool       # True once a revision points at this bid (Day 4)
+
+# ---- Day 4: input for a revision ----
+class BidRevise(BaseModel):
+    # No tender_id: the tender is copied from the old bid, so a revision can't jump
+    # to another tender. extra="forbid" turns any such attempt into a 422.
+    model_config = ConfigDict(extra="forbid")
+
+    # TEMPORARY: Day 8 takes vendor_id from Person 2's login token instead.
+    vendor_id: int = Field(..., gt=0)
+    amount: Decimal = Field(..., gt=0, max_digits=14, decimal_places=2)
+
+
+# ---- Day 4: revision history (receipts and times only, NO amounts) ----
+class BidHistoryItem(BaseModel):
+    bid_id: int
+    bid_hash: str
+    submitted_at: str
+    revision_of: int | None
+    is_current: bool       # True only for the newest row; only it counts on Day 5
+
+
+class BidHistoryOut(BaseModel):
+    tender_id: int
+    vendor_id: int
+    original_bid_id: int
+    current_bid_id: int
+    revisions: int         # 0 = never revised
+    history: list[BidHistoryItem]   # oldest -> newest

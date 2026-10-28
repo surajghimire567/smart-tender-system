@@ -10,7 +10,7 @@ from sqlalchemy import (
     UniqueConstraint, event,text
 )
 from sqlalchemy.orm import Mapped, Session, mapped_column, validates
-
+from app.auction.db_lock import install_bid_lock
 from app.database import Base
 
 
@@ -80,8 +80,13 @@ class Bid(Base):
         """First characters of the token, just to show it is encrypted."""
         return self.bid_amount_encrypted[:25] + "..."
 
+# ---- Layer 2 (Day 4): whenever create_all makes the bids table, lock it too ----
+@event.listens_for(Bid.__table__, "after_create")
+def _lock_new_table(target, connection, **kw):
+    install_bid_lock(connection)
 
-# ---- insert-only guard (Python layer; the DB trigger comes on Day 4) ----
+
+# ---- Layer 1 (Day 2): insert-only guard in Python (raw SQL is stopped by Layer 2) ----
 
 @event.listens_for(Bid, "before_update")
 def _block_update(mapper, connection, target):
