@@ -13,7 +13,9 @@ from app.auction.schemas import BidCreate, BidReceiptOut, ReceiptCheckOut, Seale
 from app.database import get_db
 from app.auction.schemas import (
     BidCreate, BidHistoryOut, BidReceiptOut, BidRevise, ReceiptCheckOut, SealedBidOut,
+    TenderRankingOut,
 )
+from app.database import get_db
 
 router = APIRouter(prefix="/auction", tags=["Auction Engine"])
 
@@ -137,3 +139,12 @@ def bid_history(bid_id: int = Path(..., gt=0), db: Session = Depends(get_db)):
         return service.bid_history(db, bid_id)
     except service.BidRejected as e:
         raise HTTPException(status_code=e.status_code, detail=str(e))
+
+ # ---- Day 5: open + rank the bids, ONLY after the deadline (L1) ----
+@router.get("/tenders/{tender_id}/ranking", response_model=TenderRankingOut)
+def tender_ranking(tender_id: int = Path(..., gt=0), db: Session = Depends(get_db)):
+    """Before the deadline: 409, nothing decrypted. After: current bids, lowest -> highest."""
+    try:
+        return service.rank_bids(db, tender_id)
+    except service.BidRejected as e:
+        raise HTTPException(status_code=e.status_code, detail=str(e))   

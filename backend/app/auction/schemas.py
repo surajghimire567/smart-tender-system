@@ -77,3 +77,34 @@ class BidHistoryOut(BaseModel):
     current_bid_id: int
     revisions: int         # 0 = never revised
     history: list[BidHistoryItem]   # oldest -> newest
+
+   # ---- Day 5: ranking (the ONLY output that contains amounts, and only after the deadline) ----
+class RankedBidOut(BaseModel):
+    rank: int              # 1 = lowest amount = best bid
+    bid_id: int
+    vendor_id: int
+    amount: Decimal        # decrypted in memory, never written back to the database
+    bid_hash: str
+    submitted_at: str
+    revision_of: int | None
+    gap_pct: Decimal | None   # % above the bid ranked just before it (None for rank 1). Day 6 uses it.
+
+
+class ExcludedBidOut(BaseModel):
+    # NO amount here: a bid that fails a check is never revealed.
+    bid_id: int
+    vendor_id: int
+    bid_hash: str
+    reason: str
+
+
+class TenderRankingOut(BaseModel):
+    tender_id: int
+    status: str
+    deadline: str
+    opened_at: str            # when this ranking was computed (UTC)
+    current_bids: int         # newest bid of each vendor (revisions replace older rows)
+    ranked: int
+    lowest: RankedBidOut | None
+    ranking: list[RankedBidOut]       # lowest -> highest
+    excluded: list[ExcludedBidOut]    # failed an integrity / deadline / ceiling check 

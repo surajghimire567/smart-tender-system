@@ -1,6 +1,7 @@
 # app/auction/service.py
 # Day 3: submit a bid + check a receipt.
 # Day 4: revise a bid (= INSERT a new row), revision history, current bids.
+# Day 5: after the deadline, decrypt the current bids and rank them (read-only)
 # Business rules live here, OUT of the router, so the API, the self-tests and
 # (later) pytest all call the same code. Nothing in this file UPDATEs or DELETEs a bid.
 from datetime import datetime, timezone
@@ -238,3 +239,87 @@ def current_bids(db: Session, tender_id: int) -> list[Bid]:
         .order_by(Bid.vendor_id)
     )
     return list(db.execute(query).scalars().all())
+
+# ---- Day 5: open the bids after the deadline and rank them (L1) ----
+class TenderStillSealed(BidRejected):
+    status_code = 409
+
+
+EXCLUDE_TOKEN = "token cannot be decrypted (invalid or tampered)"
+EXCLUDE_HASH = "receipt hash does not match the decrypted amount"
+EXCLUDE_LATE = "submitted after the deadline"
+EXCLUDE_CEILING = "above the ceiling price"
+CENT = Decimal("0.01")
+
+
+def _check_tender_closed(tender_id: int, now: datetime) -> tender_rules.TenderWindow:
+    """The mirror of _check_tender_open: ranking is allowed ONLY after the deadline."""
+    tender = tender_rules.get_tender(tender_id)
+    if tender is None:
+        raise TenderNotFound(f"Tender {tender_id} does not exist.")
+    if tender.status == "draft":
+        raise TenderNotOpen(f"Tender {tender_id} was never published; there are no bids to open.")
+    if now < tender.deadline:
+        raise TenderStillSealed(
+            f"Bids stay sealed until the deadline ({tender.deadline.isoformat()}). "
+            "Ranking opens after it.")
+    return tender
+
+
+def _open_bid(bid: Bid, tender: tender_rules.TenderWindow) -> tuple[Decimal | None, str | None]:
+    """Decrypt ONE bid and re-check it. Returns (amount, None) or (None, reason)."""
+    try:
+        amount = crypto.decrypt_amount(bid.bid_amount_encrypted)        # L1
+    except ValueError:
+        return None, EXCLUDE_TOKEN
+    if not crypto.verify_bid_hash(bid.tender_id, bid.vendor_id, amount,
+                                  bid.submitted_at_iso(), bid.bid_hash):  # L2
+        return None, EXCLUDE_HASH
+    if bid.submitted_at >= tender.deadline:     # only possible via a direct INSERT
+        return None, EXCLUDE_LATE
+    if amount > tender.ceiling_price:           # only possible via a direct INSERT
+        return None, EXCLUDE_CEILING
+    return amount, None
+
+
+def rank_bids(db: Session, tender_id: int, *, now: datetime | None = None) -> dict:
+    """Decrypt ONLY the current bids, drop any that fail a check, sort lowest -> highest.
+    Read-only: nothing is written, so the plain amounts exist only in this response."""
+    now = now or datetime.now(timezone.utc)
+    tender = _check_tender_closed(tender_id, now)
+
+    current = current_bids(db, tender_id)
+    opened, excluded = [], []
+    for bid in current:
+        amount, reason = _open_bid(bid, tender)
+        if reason:
+            excluded.append({"bid_id": bid.id, "vendor_id": bid.vendor_id,
+                             "bid_hash": bid.bid_hash, "reason": reason})
+        else:
+            opened.append((amount, bid))
+
+    # lowest amount first; equal amounts -> the one sealed EARLIER wins; then bid id
+    opened.sort(key=lambda pair: (pair[0], pair[1].submitted_at, pair[1].id))
+
+    ranking, previous = [], None
+    for position, (amount, bid) in enumerate(opened, start=1):
+        gap = None if previous is None else ((amount - previous) / previous * 100).quantize(CENT)
+        ranking.append({
+            "rank": position, "bid_id": bid.id, "vendor_id": bid.vendor_id,
+            "amount": amount, "bid_hash": bid.bid_hash,
+            "submitted_at": bid.submitted_at_iso(), "revision_of": bid.revision_of,
+            "gap_pct": gap,
+        })
+        previous = amount
+
+    return {
+        "tender_id": tender.tender_id,
+        "status": tender.status,
+        "deadline": tender.deadline.isoformat(),
+        "opened_at": now.isoformat(),
+        "current_bids": len(current),
+        "ranked": len(ranking),
+        "lowest": ranking[0] if ranking else None,
+        "ranking": ranking,
+        "excluded": sorted(excluded, key=lambda x: x["bid_id"]),
+    }

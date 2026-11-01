@@ -19,8 +19,9 @@ class TenderWindow:
 # Demo tenders so you can test every rule today.
 DEMO_TENDERS = {
     9999: TenderWindow(9999, "published", datetime(2099, 1, 1, tzinfo=timezone.utc), Decimal("200000.00")),
-    9998: TenderWindow(9998, "published", datetime(2020, 1, 1, tzinfo=timezone.utc), Decimal("200000.00")),
     9997: TenderWindow(9997, "draft",     datetime(2099, 1, 1, tzinfo=timezone.utc), Decimal("200000.00")),
+    # Day 5: a tender that CLOSED normally -> its bids may be opened and ranked.
+    9996: TenderWindow(9996, "closed",    datetime(2025, 6, 1, tzinfo=timezone.utc), Decimal("200000.00")),
 }
 
 
