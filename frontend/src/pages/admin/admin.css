@@ -1,0 +1,38 @@
+.admin-page { max-width: 1200px; margin: 0 auto; padding: 28px 20px 56px; color: #17243b; font-family: system-ui, sans-serif; }
+.admin-page h1 { margin: 4px 0 8px; font-size: clamp(1.7rem, 3vw, 2.4rem); }
+.admin-page h2 { margin: 0 0 12px; font-size: 1.25rem; }
+.admin-page h3 { margin: 18px 0 8px; }
+.admin-header, .section-heading { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin: 18px 0; }
+.eyebrow { margin: 0; color: #566a8d; font-size: .8rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.admin-card { margin: 20px 0; padding: 20px; border: 1px solid #dbe2ed; border-radius: 12px; background: #fff; box-shadow: 0 4px 16px rgb(20 40 80 / 5%); }
+.admin-card p { line-height: 1.55; }
+.tender-form { display: grid; gap: 14px; }
+.tender-form label { display: grid; gap: 6px; font-weight: 600; }
+.tender-form input, .tender-form textarea { width: 100%; box-sizing: border-box; padding: 10px 12px; border: 1px solid #bac6d8; border-radius: 7px; font: inherit; }
+.form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.button-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+.admin-page button, .button-link { display: inline-flex; align-items: center; justify-content: center; min-height: 38px; padding: 8px 13px; border: 0; border-radius: 7px; background: #174a86; color: white; font: inherit; font-weight: 650; text-decoration: none; cursor: pointer; }
+.admin-page button:disabled { cursor: wait; opacity: .6; }
+.admin-page button.secondary { border: 1px solid #bac6d8; background: #f5f7fb; color: #243650; }
+.admin-page button.danger { background: #a83333; }
+.admin-page a { color: #1458a2; }
+.table-wrap { overflow-x: auto; }
+.admin-page table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+.admin-page th, .admin-page td { padding: 11px 10px; border-bottom: 1px solid #e3e8f0; text-align: left; vertical-align: top; }
+.admin-page th { background: #f2f5fa; color: #273a56; font-size: .9rem; }
+.status-pill { display: inline-block; padding: 4px 9px; border-radius: 999px; background: #edf0f5; color: #36445a; font-size: .85rem; font-weight: 700; text-transform: capitalize; }
+.status-draft { background: #edf0f5; }
+.status-published { background: #e4f5ea; color: #176b37; }
+.status-closed { background: #fff0d9; color: #7a4b00; }
+.status-awarded { background: #e8e5ff; color: #453d91; }
+.tender-summary dl { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.tender-summary dl div { padding: 10px; background: #f7f9fc; border-radius: 8px; }
+.tender-summary dt { color: #66758c; font-size: .84rem; }
+.tender-summary dd { margin: 4px 0 0; font-weight: 650; }
+.error-message, .success-message { padding: 11px 14px; border-radius: 8px; }
+.error-message { border: 1px solid #eab5b5; background: #fff0f0; color: #8b2323; }
+.success-message { border: 1px solid #b6dfc2; background: #effaf2; color: #176b37; }
+.flag-list { display: grid; gap: 10px; padding: 0; list-style: none; }
+.flag-list li { display: grid; gap: 4px; padding: 12px; border-left: 4px solid #d28b19; background: #fff9ec; }
+.flag-list time { color: #66758c; font-size: .88rem; }
+@media (max-width: 700px) { .admin-header, .section-heading { flex-direction: column; } .form-grid, .tender-summary dl { grid-template-columns: 1fr; } .admin-page { padding-inline: 12px; } }

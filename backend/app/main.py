@@ -7,7 +7,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.database import check_connection
 
 # ---- router imports ----
- 
+from app.admin.router import router as admin_router
+
 # [slot: vendor import]
 
 # [slot: auction import]
@@ -26,7 +27,7 @@ app.add_middleware(
 )
 
 # ---- router registration ----
-# [slot: admin router]
+app.include_router(admin_router)
 
 # [slot: vendor router]
 
