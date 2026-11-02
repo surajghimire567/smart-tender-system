@@ -9,7 +9,7 @@ from app.database import check_connection
 # ---- router imports ----
 # [slot: admin import]
 
-# [slot: vendor import]
+from app.vendor.router import router as vendor_router
 
 # [slot: auction import]
 
@@ -22,13 +22,13 @@ app.add_middleware(
     allow_origins=["http://localhost:5173"],  # Vite (React) dev server
     allow_credentials=True,
     allow_methods=["*"],
-    allow_headers=["*"],
+    allow_headers=["Authorization", "Content-Type", "X-Device-Id"],
 )
 
 # ---- router registration ----
 # [slot: admin router]
 
-# [slot: vendor router]
+app.include_router(vendor_router)
 
 # [slot: auction router]
 
