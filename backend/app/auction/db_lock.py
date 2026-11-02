@@ -51,3 +51,41 @@ def lock_status(connection) -> dict[str, str]:
         name: "MISSING" if name not in found else ("ON" if found[name] in ("O", "A") else "OFF")
         for name in LOCK_TRIGGERS
     }
+
+# ---- Day 6: the same wall for collusion_flags. A saved flag is evidence (L10): never edited or deleted.
+FLAGS_TABLE = "collusion_flags"
+FLAGS_FUNCTION = "collusion_flags_insert_only"
+FLAGS_LOCK_FUNCTION = f"""
+CREATE OR REPLACE FUNCTION {FLAGS_FUNCTION}() RETURNS trigger AS $$
+BEGIN
+    RAISE EXCEPTION USING
+        MESSAGE = '{FLAGS_TABLE} is insert-only: ' || TG_OP || ' is not allowed',
+        ERRCODE = 'restrict_violation',
+        HINT    = 'A flag is evidence. Record a review as a NEW row in another table instead.';
+END;
+$$ LANGUAGE plpgsql
+"""
+FLAGS_TRIGGERS = {
+    "flags_block_update_delete": f"BEFORE UPDATE OR DELETE ON {FLAGS_TABLE} FOR EACH ROW",
+    "flags_block_truncate": f"BEFORE TRUNCATE ON {FLAGS_TABLE} FOR EACH STATEMENT",
+}
+
+
+def install_flags_lock(connection) -> None:
+    """Same as install_bid_lock, for collusion_flags. Safe to run any number of times."""
+    connection.execute(text(FLAGS_LOCK_FUNCTION))
+    for name, when in FLAGS_TRIGGERS.items():
+        connection.execute(text(f"DROP TRIGGER IF EXISTS {name} ON {FLAGS_TABLE}"))
+        connection.execute(text(f"CREATE TRIGGER {name} {when} EXECUTE FUNCTION {FLAGS_FUNCTION}()"))
+
+
+def flags_lock_status(connection) -> dict[str, str]:
+    """Same read-out as lock_status, for the two collusion_flags triggers."""
+    rows = connection.execute(text(
+        "SELECT tgname, tgenabled FROM pg_trigger "
+        "WHERE tgrelid = to_regclass(:t) AND NOT tgisinternal"), {"t": FLAGS_TABLE}).all()
+    found = {name: flag for name, flag in rows}
+    return {
+        name: "MISSING" if name not in found else ("ON" if found[name] in ("O", "A") else "OFF")
+        for name in FLAGS_TRIGGERS
+    }

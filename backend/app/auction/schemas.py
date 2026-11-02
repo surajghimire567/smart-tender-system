@@ -108,3 +108,82 @@ class TenderRankingOut(BaseModel):
     lowest: RankedBidOut | None
     ranking: list[RankedBidOut]       # lowest -> highest
     excluded: list[ExcludedBidOut]    # failed an integrity / deadline / ceiling check 
+
+  # ---- Day 6: collusion rule 1. NO amount field anywhere: only vendor ids, ranks and % gaps. ----
+class CollusionEventOut(BaseModel):
+    tender_id: int
+    lower_vendor_id: int       # the cheaper bid of the two neighbours
+    higher_vendor_id: int
+    lower_bid_id: int
+    higher_bid_id: int
+    gap_pct: Decimal           # how far above the cheaper one, in % (1.00 to 2.00)
+
+
+class FlaggedPairOut(BaseModel):
+    vendor_a: int              # the smaller vendor id of the pair
+    vendor_b: int
+    times: int                 # in how many different tenders they were this close
+    tender_ids: list[int]
+    a_cheaper_times: int
+    b_cheaper_times: int
+    avg_gap_pct: Decimal
+    events: list[CollusionEventOut]
+
+
+class CollusionScanOut(BaseModel):
+    rule: str
+    gap_min_pct: Decimal
+    gap_max_pct: Decimal
+    min_repeats: int
+    scanned_at: str
+    tenders_scanned: list[int]
+    close_gaps_found: int      # single close gaps seen (normal competition, NOT flags)
+    pairs_flagged: int
+    flagged: list[FlaggedPairOut]
+
+
+# ---- Day 6: collusion rule 2 (one vendor wins too often). Still NO amount field anywhere. ----
+class WinShareFlagOut(BaseModel):
+    vendor_id: int
+    entered: int                # contested tenders (>= 2 valid bids) with a ranked bid of this vendor
+    won: int                    # of those, how many it was rank 1 in
+    win_share_pct: Decimal      # won / entered * 100, 2 decimals
+    tender_ids_entered: list[int]
+    tender_ids_won: list[int]
+
+
+class WinShareScanOut(BaseModel):
+    rule: str
+    min_share_pct: int
+    min_entered: int
+    min_bidders: int
+    scanned_at: str
+    tenders_scanned: list[int]
+    contested_tenders: list[int]   # scanned tenders with >= min_bidders valid bids
+    vendors_judged: int            # vendors that entered >= min_entered contested tenders
+    vendors_flagged: int
+    flagged: list[WinShareFlagOut]
+
+
+# ---- Day 6: the saved flags (CollusionFlags table) ----
+class CollusionFlagOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    rule: str                   # repeated_undercutting | high_win_share
+    tender_id: int
+    vendor_id_a: int
+    vendor_id_b: int | None     # None for high_win_share (one vendor, no pair)
+    flag_reason: str
+    flagged_at: datetime
+
+
+class CollusionRunOut(BaseModel):
+    scanned_at: str
+    tenders_scanned: list[int]
+    pairs_flagged: int          # rule 1 result (pairs of vendors)
+    vendors_flagged: int        # rule 2 result (single vendors)
+    flags_found: int            # rows both rules produced in this run
+    new_flags: int              # rows INSERTed by this run
+    already_saved: int          # rows an earlier run had saved (skipped, never duplicated)
+    saved: list[CollusionFlagOut]   # the NEW rows only  
