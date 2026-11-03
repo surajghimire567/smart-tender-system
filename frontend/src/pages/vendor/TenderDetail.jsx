@@ -23,12 +23,12 @@ export default function TenderDetail() {
   const [receipt, setReceipt] = useState(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
-  const load = useCallback(async () => {
-    try { setError(""); setTender(await apiRequest(`/tenders/${tenderId}`)); }
+  const load = useCallback(async ({ backgroundRefresh = false } = {}) => {
+    try { setError(""); setTender(await apiRequest(`/tenders/${tenderId}`, { backgroundRefresh })); }
     catch (err) { setError(err.message); }
     finally { setLoading(false); }
   }, [tenderId]);
-  useEffect(() => { load(); const timer = window.setInterval(load, 20000); return () => window.clearInterval(timer); }, [load]);
+  useEffect(() => { load(); const timer = window.setInterval(() => load({ backgroundRefresh: true }), 20000); return () => window.clearInterval(timer); }, [load]);
 
   async function submit(event) {
     event.preventDefault();

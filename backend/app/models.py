@@ -13,6 +13,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import Mapped, Session, mapped_column, validates
 
+from app.auction.models import CollusionFlag
 from app.database import Base
 
 
@@ -63,6 +64,7 @@ class Tender(Base):
     base_price: Mapped[Decimal] = mapped_column(Numeric(14, 2), nullable=False)
     ceiling_price: Mapped[Decimal] = mapped_column(Numeric(14, 2), nullable=False)
     deadline: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    closed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     status: Mapped[str] = mapped_column(String(16), nullable=False, default="draft")
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=func.now()
@@ -83,29 +85,6 @@ class Award(Base):
     winning_bid_id: Mapped[int] = mapped_column(Integer, nullable=False)
     awarded_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc)
-    )
-
-
-class CollusionFlag(Base):
-    __tablename__ = "collusion_flags"
-    __table_args__ = (
-        CheckConstraint("vendor_id_a <> vendor_id_b", name="ck_flags_distinct_vendors"),
-        Index("ix_collusion_flags_tender_time", "tender_id", "flagged_at"),
-    )
-
-    id: Mapped[int] = mapped_column(primary_key=True)
-    tender_id: Mapped[int] = mapped_column(
-        ForeignKey("tenders.id", ondelete="RESTRICT"), nullable=False, index=True
-    )
-    vendor_id_a: Mapped[int] = mapped_column(
-        ForeignKey("users.id", ondelete="RESTRICT"), nullable=False
-    )
-    vendor_id_b: Mapped[int] = mapped_column(
-        ForeignKey("users.id", ondelete="RESTRICT"), nullable=False
-    )
-    flag_reason: Mapped[str] = mapped_column(Text, nullable=False)
-    flagged_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, server_default=func.now()
     )
 
 

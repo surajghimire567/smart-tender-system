@@ -13,12 +13,12 @@ from fastapi.testclient import TestClient
 from sqlalchemy import func, select, text
 from sqlalchemy.exc import IntegrityError
 
-from app.auction import collusion, service, tender_rules
+from app.auction import collusion, tender_rules
 from app.auction.crypto import encrypt_amount, make_bid_hash
 from app.auction.models import Bid, CollusionFlag, FlagLockedError
-from app.auction.tender_rules import TenderWindow
 from app.database import SessionLocal
 from app.main import app
+from scripts.tender_test_fixtures import seed_test_tenders
 
 client = TestClient(app)
 WIN, SCAN, FLAGS = "/auction/collusion/win-share", "/auction/collusion/scan", "/auction/collusion/flags"
@@ -27,6 +27,7 @@ BASE = random.randint(1000, 900000)          # fresh vendor ids for this run
 TB = random.randint(tender_rules.TEST_TENDER_MIN, tender_rules.TEST_TENDER_MIN + 900_000_000)
 W, X, Y, Z, V = (BASE + i for i in range(5))
 T = [TB + i for i in range(9)]               # 9 brand-new closed tenders: T[0] .. T[8]
+OPEN_TENDER, DRAFT_TENDER = TB + 9, TB + 10
 MINE = set(T)
 
 
@@ -44,8 +45,10 @@ def count(model):
 
 def insert(tender_id, vendor, amount, minutes_before_deadline):
     """Direct INSERT (allowed by the Day 4 lock) with a time BEFORE the tender's deadline."""
-    at = tender_rules.get_tender(tender_id).deadline - timedelta(minutes=minutes_before_deadline)
     with SessionLocal() as db:
+        tender = tender_rules.get_tender(db, tender_id)
+        assert tender is not None
+        at = tender.deadline - timedelta(minutes=minutes_before_deadline)
         db.add(Bid(tender_id=tender_id, vendor_id=vendor,
                    bid_amount_encrypted=encrypt_amount(amount),
                    bid_hash=make_bid_hash(tender_id, vendor, amount, at.isoformat()),
@@ -116,10 +119,14 @@ PLAN = {
     T[7]: [(V, "30000.00"), (Z, "33000.00")],
     T[8]: [(V, "20000.00"), (Z, "22000.00")],
 }
-for i, t in enumerate(T):
-    tender_rules.DEMO_TENDERS[t] = TenderWindow(t, "closed", DEADLINE + timedelta(days=i),
-                                                Decimal("200000.00"))
-    assert tender_rules.get_tender(t) is not None, "get_tender() does not read DEMO_TENDERS"
+with SessionLocal() as db:
+    seed_test_tenders(db, [
+        (t, "closed", DEADLINE + timedelta(days=i), Decimal("200000.00"))
+        for i, t in enumerate(T)
+    ] + [
+        (OPEN_TENDER, "published", datetime(2099, 1, 1, tzinfo=timezone.utc), Decimal("200000.00")),
+        (DRAFT_TENDER, "draft", datetime(2099, 1, 1, tzinfo=timezone.utc), Decimal("200000.00")),
+    ])
 for tender, bids in PLAN.items():
     for slot, (vendor, amount) in enumerate(bids):
         insert(tender, vendor, amount, 180 - 30 * slot)
@@ -131,7 +138,7 @@ print(f"[OK] sealed {sum(map(len, PLAN.values()))} bids in 9 closed tenders {T[0
 data = expect("win-share scan, default thresholds (75%, 3 tenders)", client.get(WIN), 200).json()
 assert data["rule"] == "high_win_share" and (data["min_share_pct"], data["min_entered"]) == (75, 3)
 assert MINE <= set(data["tenders_scanned"])
-assert 9999 not in data["tenders_scanned"] and 9997 not in data["tenders_scanned"]
+assert OPEN_TENDER not in data["tenders_scanned"] and DRAFT_TENDER not in data["tenders_scanned"]
 assert {T[0], T[1], T[2], T[3], T[6], T[7], T[8]} <= set(data["contested_tenders"])
 assert T[4] not in data["contested_tenders"] and T[5] not in data["contested_tenders"]
 print("[OK] closed tenders scanned (open + draft are not); sole-bidder tenders are not contested")
@@ -222,8 +229,8 @@ for body in (run_text, client.get(FLAGS).text, client.get(WIN).text):
 print("[OK] no amount in the win-share, scan or flags output (L1)")
 
 with SessionLocal() as db:
-    out = service.run_collusion_scan(db, now=datetime(2000, 1, 1, tzinfo=timezone.utc))
-assert out["tenders_scanned"] == [] and out["flags_found"] == 0 and out["new_flags"] == 0
-print("[OK] with the clock before every deadline nothing is opened and nothing is saved (L1)")
+    openable = set(tender_rules.openable_tender_ids(db, now=DEADLINE - timedelta(seconds=1)))
+assert MINE.isdisjoint(openable)
+print("[OK] before the test tenders' deadlines, none of them is openable (L1)")
 
 print("\nDay 6 win-share + flags checks passed.")

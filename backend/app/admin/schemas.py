@@ -2,7 +2,7 @@
 from datetime import datetime, timezone
 from decimal import Decimal
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 
 class TenderCreateIn(BaseModel):
@@ -19,7 +19,16 @@ class TenderCreateIn(BaseModel):
     def deadline_must_be_timezone_aware(cls, value: datetime) -> datetime:
         if value.tzinfo is None or value.utcoffset() is None:
             raise ValueError("deadline must include a timezone")
-        return value.astimezone(timezone.utc)
+        value = value.astimezone(timezone.utc)
+        if value <= datetime.now(timezone.utc):
+            raise ValueError("deadline must be in the future")
+        return value
+
+    @model_validator(mode="after")
+    def ceiling_must_cover_base_price(self):
+        if self.ceiling_price < self.base_price:
+            raise ValueError("ceiling_price must be greater than or equal to base_price")
+        return self
 
 
 class TenderUpdateIn(BaseModel):
@@ -38,7 +47,20 @@ class TenderUpdateIn(BaseModel):
             return value
         if value.tzinfo is None or value.utcoffset() is None:
             raise ValueError("deadline must include a timezone")
-        return value.astimezone(timezone.utc)
+        value = value.astimezone(timezone.utc)
+        if value <= datetime.now(timezone.utc):
+            raise ValueError("deadline must be in the future")
+        return value
+
+    @model_validator(mode="after")
+    def ceiling_must_cover_base_price(self):
+        if (
+            self.base_price is not None
+            and self.ceiling_price is not None
+            and self.ceiling_price < self.base_price
+        ):
+            raise ValueError("ceiling_price must be greater than or equal to base_price")
+        return self
 
 
 class TenderOut(BaseModel):
@@ -51,6 +73,7 @@ class TenderOut(BaseModel):
     base_price: Decimal
     ceiling_price: Decimal
     deadline: datetime
+    closed_at: datetime | None = None
     status: str
     created_at: datetime
     is_open: bool
@@ -77,6 +100,6 @@ class CollusionFlagOut(BaseModel):
     id: int
     tender_id: int
     vendor_id_a: int
-    vendor_id_b: int
+    vendor_id_b: int | None
     flag_reason: str
     flagged_at: datetime

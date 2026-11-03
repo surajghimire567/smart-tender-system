@@ -100,7 +100,7 @@ def race(amount):
     with SessionLocal() as db:
         barrier.wait()                 # both threads start at the same moment
         try:
-            service.submit_bid(db, BidCreate(tender_id=TENDER, vendor_id=racer, amount=amount),
+            service.submit_bid_legacy(db, BidCreate(tender_id=TENDER, vendor_id=racer, amount=amount),
                                ip_address="127.0.0.1", device_fingerprint=None)
             results.append("saved")
         except service.DuplicateBid:

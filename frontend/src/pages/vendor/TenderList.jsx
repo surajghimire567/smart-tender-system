@@ -10,14 +10,14 @@ export default function TenderList() {
   const [rows, setRows] = useState([]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
-  const load = useCallback(async () => {
+  const load = useCallback(async ({ backgroundRefresh = false } = {}) => {
     try {
       setError("");
-      setRows(await apiRequest("/tenders?status=published"));
+      setRows(await apiRequest("/tenders?status=published", { backgroundRefresh }));
     } catch (err) { setError(err.message); }
     finally { setLoading(false); }
   }, []);
-  useEffect(() => { load(); const timer = window.setInterval(load, 20000); return () => window.clearInterval(timer); }, [load]);
+  useEffect(() => { load(); const timer = window.setInterval(() => load({ backgroundRefresh: true }), 20000); return () => window.clearInterval(timer); }, [load]);
 
   return (
     <main className="vendor-page">

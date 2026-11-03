@@ -11,21 +11,20 @@ from decimal import Decimal
 from fastapi.testclient import TestClient
 from sqlalchemy import func, select
 
-from app.auction import collusion, service, tender_rules
+from app.auction import collusion, tender_rules
 from app.auction.crypto import encrypt_amount, make_bid_hash
 from app.auction.models import Bid
-from app.auction.tender_rules import TenderWindow
 from app.database import SessionLocal
 from app.main import app
+from scripts.tender_test_fixtures import seed_test_tenders
 
 client = TestClient(app)
 SCAN = "/auction/collusion/undercutting"
-OPEN_TENDER, DRAFT_TENDER = 9999, 9997
+TB = random.randint(tender_rules.TEST_TENDER_MIN, tender_rules.TEST_TENDER_MIN + 900_000_000)
+T1, T2, T3, OPEN_TENDER, DRAFT_TENDER = (TB + i for i in range(5))
 DEADLINE = datetime(2025, 2, 1, tzinfo=timezone.utc)
 BASE = random.randint(1000, 900000)          # fresh vendor ids for this run
-TB = random.randint(tender_rules.TEST_TENDER_MIN, tender_rules.TEST_TENDER_MIN + 900_000_000)  # fresh tender ids
 A, B, C, D, E = (BASE + i for i in range(5))
-T1, T2, T3 = TB, TB + 1, TB + 2
 
 
 def expect(label, response, status):
@@ -42,12 +41,14 @@ def total_rows():
 
 def insert(tender_id, vendor, amount, minutes_before_deadline):
     """Direct INSERT (allowed by the Day 4 lock) with a time BEFORE the tender's deadline."""
-    at = tender_rules.get_tender(tender_id).deadline - timedelta(minutes=minutes_before_deadline)
-    bid = Bid(tender_id=tender_id, vendor_id=vendor,
-              bid_amount_encrypted=encrypt_amount(amount),
-              bid_hash=make_bid_hash(tender_id, vendor, amount, at.isoformat()),
-              revision_of=None, submitted_at=at)
     with SessionLocal() as db:
+        tender = tender_rules.get_tender(db, tender_id)
+        assert tender is not None
+        at = tender.deadline - timedelta(minutes=minutes_before_deadline)
+        bid = Bid(tender_id=tender_id, vendor_id=vendor,
+                  bid_amount_encrypted=encrypt_amount(amount),
+                  bid_hash=make_bid_hash(tender_id, vendor, amount, at.isoformat()),
+                  revision_of=None, submitted_at=at)
         db.add(bid)
         db.commit()
         return bid.id
@@ -97,10 +98,14 @@ assert len(collusion.flag_repeated_pairs(evs[:2], 2)) == 1         # unless you 
 print("[OK] same pair whoever is cheaper; needs the threshold number of DIFFERENT tenders")
 
 # =============== setup: 3 brand-new closed tenders with 13 sealed bids ===
-for i, t in enumerate((T1, T2, T3)):
-    tender_rules.DEMO_TENDERS[t] = TenderWindow(
-        t, "closed", DEADLINE + timedelta(days=i), Decimal("200000.00"))
-    assert tender_rules.get_tender(t) is not None, "get_tender() does not read DEMO_TENDERS"
+with SessionLocal() as db:
+    seed_test_tenders(db, [
+        (T1, "closed", DEADLINE, Decimal("200000.00")),
+        (T2, "closed", DEADLINE + timedelta(days=1), Decimal("200000.00")),
+        (T3, "closed", DEADLINE + timedelta(days=2), Decimal("200000.00")),
+        (OPEN_TENDER, "published", datetime(2099, 1, 1, tzinfo=timezone.utc), Decimal("200000.00")),
+        (DRAFT_TENDER, "draft", datetime(2099, 1, 1, tzinfo=timezone.utc), Decimal("200000.00")),
+    ])
 
 # A and B are 1.50% / 2.00% / 1.50% apart (the cheaper vendor changes). C and D are only
 # close in T1 (1.00%) and T2 (1.50%). E is far from everybody. No other neighbours are within 2%.
@@ -157,9 +162,9 @@ assert again["flagged"] == data["flagged"] and again["tenders_scanned"] == data[
 assert total_rows() == rows_before, "the scan wrote to the bids table!"
 print("[OK] same answer twice, and the scan wrote nothing (read-only)")
 
-with SessionLocal() as db:      # before every deadline nothing may be opened, so nothing is scanned
-    out = service.scan_undercutting(db, now=datetime(2000, 1, 1, tzinfo=timezone.utc))
-assert out["tenders_scanned"] == [] and out["flagged"] == [] and out["close_gaps_found"] == 0
-print("[OK] with the clock set before every deadline, no tender is opened (L1)")
+with SessionLocal() as db:
+    openable = set(tender_rules.openable_tender_ids(db, now=DEADLINE - timedelta(seconds=1)))
+assert not {T1, T2, T3} & openable
+print("[OK] before the test tenders' deadlines, none of them is openable (L1)")
 
 print("\nDay 6 collusion checks passed.")

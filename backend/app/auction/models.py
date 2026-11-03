@@ -73,7 +73,12 @@ class Bid(Base):
 
     def submitted_at_iso(self) -> str:
         """UTC ISO string, identical to the one used to build the receipt."""
-        return self.submitted_at.astimezone(timezone.utc).isoformat()
+        submitted_at = self.submitted_at
+        # SQLite drops timezone metadata when it reloads DateTime values. The
+        # application only stores UTC here, so restore that timezone explicitly.
+        if submitted_at.tzinfo is None or submitted_at.utcoffset() is None:
+            submitted_at = submitted_at.replace(tzinfo=timezone.utc)
+        return submitted_at.astimezone(timezone.utc).isoformat()
 
     @property
     def token_preview(self) -> str:

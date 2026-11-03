@@ -89,7 +89,20 @@ class AuditMiddleware(BaseHTTPMiddleware):
         self, request: Request, call_next: RequestResponseEndpoint
     ) -> Response:
         path = request.url.path
-        if path in _SKIP_PATHS or path.startswith(_SKIP_PREFIXES):
+        is_background_refresh = (
+            request.method == "GET"
+            and request.headers.get("x-background-refresh", "").lower() == "true"
+        )
+        is_cors_preflight = (
+            request.method == "OPTIONS"
+            and "access-control-request-method" in request.headers
+        )
+        if (
+            path in _SKIP_PATHS
+            or path.startswith(_SKIP_PREFIXES)
+            or is_background_refresh
+            or is_cors_preflight
+        ):
             return await call_next(request)
 
         started = time.perf_counter()

@@ -1,7 +1,7 @@
 # scripts/day5_seed_closed.py
 # Run from backend/:  python -m scripts.day5_seed_closed
-# DEMO ONLY: puts 4 fixed vendors' bids on closed tender 9996 so you can try the
-# ranking in /docs. Safe to run again: vendors that already bid are skipped.
+# DEMO ONLY: puts 4 fixed vendors' bids on the real closed tender row 9996 so you can
+# try the ranking in /docs. Create that tender in the database first. Safe to rerun.
 from datetime import timedelta
 
 from sqlalchemy import exists, select
@@ -12,7 +12,11 @@ from app.auction.tender_rules import get_tender
 from app.database import SessionLocal
 
 TENDER = 9996
-DEADLINE = get_tender(TENDER).deadline
+with SessionLocal() as db:
+    tender = get_tender(db, TENDER)
+    if tender is None:
+        raise SystemExit(f"Tender {TENDER} is not present in the tenders table.")
+    DEADLINE = tender.deadline
 # vendor -> list of (amount, minutes before the deadline); 2nd item = a revision
 DEMO = {
     501: [("158000.00", 300), ("141500.00", 90)],

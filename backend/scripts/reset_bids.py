@@ -5,12 +5,12 @@
 from sqlalchemy import text
 
 from app.auction.db_lock import FLAGS_FUNCTION, FUNCTION
-from app.auction.tender_rules import DEMO_TENDERS, TEST_TENDER_MIN
+from app.auction.tender_rules import DEMO_TENDER_IDS, TEST_TENDER_MIN
 from app.database import engine
 
 # Day 6: tenders >= TEST_TENDER_MIN were made by a self-test (day6_collusion_test / day6_flags_test).
 NOT_DEMO = "SELECT count(*) FROM {table} WHERE NOT (tender_id = ANY(:ids)) AND tender_id < :test_min"
-params = {"ids": list(DEMO_TENDERS), "test_min": TEST_TENDER_MIN}
+params = {"ids": list(DEMO_TENDER_IDS), "test_min": TEST_TENDER_MIN}
 
 with engine.begin() as conn:
     exists = conn.execute(text("SELECT to_regclass('bids') IS NOT NULL")).scalar()

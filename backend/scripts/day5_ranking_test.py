@@ -16,12 +16,22 @@ from app.auction.crypto import encrypt_amount, make_bid_hash
 from app.auction.models import Bid
 from app.database import SessionLocal
 from app.main import app
+from scripts.tender_test_fixtures import seed_test_tenders
 
 client = TestClient(app)
-OPEN_TENDER, LATE_TENDER, DRAFT_TENDER, CLOSED = 9999, 9998, 9997, 9996
-DEADLINE = tender_rules.get_tender(CLOSED).deadline
+TB = random.randint(tender_rules.TEST_TENDER_MIN, tender_rules.TEST_TENDER_MIN + 900_000_000)
+OPEN_TENDER, LATE_TENDER, DRAFT_TENDER, CLOSED, UNKNOWN_TENDER = (TB + i for i in range(5))
+DEADLINE = datetime.now(timezone.utc) - timedelta(days=1)
 BASE = random.randint(1000, 900000)          # fresh vendor ids for this run
 A, B, C, D, LATE, HIGH, BADHASH, BADTOKEN = (BASE + i for i in range(8))
+
+with SessionLocal() as db:
+    seed_test_tenders(db, [
+        (OPEN_TENDER, "published", datetime(2099, 1, 1, tzinfo=timezone.utc), Decimal("200000.00")),
+        (LATE_TENDER, "published", DEADLINE, Decimal("200000.00")),
+        (DRAFT_TENDER, "draft", datetime(2099, 1, 1, tzinfo=timezone.utc), Decimal("200000.00")),
+        (CLOSED, "closed", DEADLINE, Decimal("200000.00")),
+    ])
 
 
 def expect(label, response, status):
@@ -58,7 +68,7 @@ def insert(vendor, amount, minutes_before_deadline, revision_of=None, *,
 r = expect("ranking an OPEN tender (deadline 2099)", client.get(f"/auction/tenders/{OPEN_TENDER}/ranking"), 409)
 assert "sealed" in r.text and "amount" not in r.text and "ranking" not in r.json()
 expect("ranking a DRAFT tender", client.get(f"/auction/tenders/{DRAFT_TENDER}/ranking"), 409)
-expect("ranking a tender that doesn't exist", client.get("/auction/tenders/123456/ranking"), 404)
+expect("ranking a tender that doesn't exist", client.get(f"/auction/tenders/{UNKNOWN_TENDER}/ranking"), 404)
 expect("ranking tender id 0", client.get("/auction/tenders/0/ranking"), 422)
 with SessionLocal() as db:   # the service itself refuses too, not only the route
     try:

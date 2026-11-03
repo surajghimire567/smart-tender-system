@@ -90,3 +90,20 @@ def rank_bids(db: Any, tender_id: int) -> dict:
             detail="Auction ranking integration is pending",
         )
     return _rank_bids(db, tender_id)
+
+
+def run_collusion_scan(
+    db: Any,
+    *,
+    actor_id: int | None = None,
+    ip_address: str | None = None,
+) -> dict:
+    """Run Person 3's idempotent flag scan using the caller's database session."""
+    try:
+        from app.auction.service import run_collusion_scan as scan
+    except (ImportError, AttributeError) as exc:
+        raise HTTPException(
+            status_code=503,
+            detail="Auction collusion integration is pending",
+        ) from exc
+    return scan(db, actor_id=actor_id, ip_address=ip_address)

@@ -12,10 +12,10 @@ export default function AdminDashboard() {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
 
-  async function refresh() {
+  async function refresh({ backgroundRefresh = false } = {}) {
     setError("");
     try {
-      const rows = await adminRequest("/admin/tenders");
+      const rows = await adminRequest("/admin/tenders", { backgroundRefresh });
       setTenders(rows);
     } catch (err) {
       setError(err.message);
@@ -26,7 +26,7 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     refresh();
-    const timer = window.setInterval(refresh, 20000);
+    const timer = window.setInterval(() => refresh({ backgroundRefresh: true }), 20000);
     return () => window.clearInterval(timer);
   }, []);
 

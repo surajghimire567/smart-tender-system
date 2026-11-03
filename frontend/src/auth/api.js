@@ -11,9 +11,14 @@ export class ApiError extends Error {
 }
 
 export async function apiRequest(path, options = {}) {
-  const { authenticated = true, ...fetchOptions } = options;
+  const {
+    authenticated = true,
+    backgroundRefresh = false,
+    ...fetchOptions
+  } = options;
   const headers = new Headers(fetchOptions.headers || {});
   headers.set("X-Device-Id", getDeviceId());
+  if (backgroundRefresh) headers.set("X-Background-Refresh", "true");
   const token = authenticated ? getToken() : null;
   if (token) headers.set("Authorization", `Bearer ${token}`);
   if (fetchOptions.body !== undefined && !headers.has("Content-Type")) {

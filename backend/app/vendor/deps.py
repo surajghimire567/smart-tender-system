@@ -117,8 +117,8 @@ def refresh_status(db: Session, tender: Any, ip: str | None = None) -> Any:
     return _p1_function("refresh_status")(db, tender, ip)
 
 
-def refresh_all_overdue(db: Session) -> None:
-    _p1_function("refresh_all_overdue")(db)
+def refresh_all_overdue(db: Session, ip: str | None = None) -> None:
+    _p1_function("refresh_all_overdue")(db, ip)
 
 
 def _engine_function(name: str) -> Callable[..., Any] | None:

@@ -25,7 +25,12 @@ app.add_middleware(
     allow_origins=["http://localhost:5173"],  # Vite (React) dev server
     allow_credentials=True,
     allow_methods=["*"],
-    allow_headers=["Authorization", "Content-Type", "X-Device-Id"],
+    allow_headers=[
+        "Authorization",
+        "Content-Type",
+        "X-Device-Id",
+        "X-Background-Refresh",
+    ],
 )
 app.add_middleware(AuditMiddleware)
 

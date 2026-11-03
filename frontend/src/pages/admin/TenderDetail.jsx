@@ -16,10 +16,10 @@ export default function TenderDetail() {
   const [busy, setBusy] = useState(false);
   const [editing, setEditing] = useState(false);
 
-  async function refreshTender() {
+  async function refreshTender({ backgroundRefresh = false } = {}) {
     setError("");
     try {
-      const data = await adminRequest(`/admin/tenders/${tenderId}`);
+      const data = await adminRequest(`/admin/tenders/${tenderId}`, { backgroundRefresh });
       setTender(data);
     } catch (err) {
       setError(err.message);
@@ -28,7 +28,7 @@ export default function TenderDetail() {
 
   useEffect(() => {
     refreshTender();
-    const timer = window.setInterval(refreshTender, 20000);
+    const timer = window.setInterval(() => refreshTender({ backgroundRefresh: true }), 20000);
     return () => window.clearInterval(timer);
   }, [tenderId]);
 

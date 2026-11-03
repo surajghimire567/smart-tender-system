@@ -30,6 +30,28 @@ def _deadline_passed(tender: Any) -> bool:
     return datetime.now(timezone.utc) >= _as_utc(tender.deadline)
 
 
+def _opening_time(tender: Any) -> datetime:
+    """A manual close opens bids immediately; otherwise the scheduled deadline does."""
+    return _as_utc(tender.closed_at or tender.deadline)
+
+
+def _opening_time_passed(tender: Any) -> bool:
+    return datetime.now(timezone.utc) >= _opening_time(tender)
+
+
+def _validate_tender_values(base_price: Any, ceiling_price: Any, deadline: datetime) -> None:
+    if ceiling_price < base_price:
+        raise AdminError(
+            422,
+            "ceiling_price must be greater than or equal to base_price",
+        )
+    # Request schemas require an explicit timezone. Some DB drivers (notably
+    # SQLite) return stored timezone-aware values as naive datetimes, so treat
+    # those persisted values as UTC here.
+    if _as_utc(deadline) <= datetime.now(timezone.utc):
+        raise AdminError(422, "deadline must be in the future")
+
+
 def is_open(tender: Any) -> bool:
     """P1 cross-module contract: published and strictly before the UTC deadline."""
     return tender.status == PUBLISHED and not _deadline_passed(tender)
@@ -37,6 +59,7 @@ def is_open(tender: Any) -> bool:
 
 def _log_deadline_close(db: Any, tender: Any, ip: str | None = None) -> None:
     tender.status = CLOSED
+    tender.closed_at = _as_utc(tender.deadline)
     deps.log_action(
         db,
         actor_id=None,
@@ -53,13 +76,14 @@ def refresh_status(db: Any, tender: Any, ip: str | None = None) -> Any:
         try:
             _log_deadline_close(db, tender, ip)
             db.commit()
+            deps.run_collusion_scan(db, ip_address=ip)
         except Exception:
             db.rollback()
             raise
     return tender
 
 
-def refresh_all_overdue(db: Any) -> None:
+def refresh_all_overdue(db: Any, ip: str | None = None) -> None:
     """P1 contract: close every overdue published tender and append audit events."""
     Tender = deps.get_model("Tender")
     rows = db.execute(
@@ -69,10 +93,11 @@ def refresh_all_overdue(db: Any) -> None:
     try:
         for tender in rows:
             if not is_open(tender):
-                _log_deadline_close(db, tender)
+                _log_deadline_close(db, tender, ip)
                 changed = True
         if changed:
             db.commit()
+            deps.run_collusion_scan(db, ip_address=ip)
     except Exception:
         db.rollback()
         raise
@@ -100,8 +125,8 @@ def _safe_commit(db: Any) -> None:
         raise
 
 
-def list_tenders(db: Any) -> list[Any]:
-    refresh_all_overdue(db)
+def list_tenders(db: Any, ip: str | None = None) -> list[Any]:
+    refresh_all_overdue(db, ip)
     Tender = deps.get_model("Tender")
     return list(
         db.execute(
@@ -117,6 +142,7 @@ def create_tender(
     ip: str | None,
 ) -> Any:
     Tender = deps.get_model("Tender")
+    _validate_tender_values(payload.base_price, payload.ceiling_price, payload.deadline)
     values = payload.model_dump()
     values.update(created_by=actor_id, status=DRAFT)
     tender = Tender(**values)
@@ -151,6 +177,11 @@ def update_draft(
         raise AdminError(409, "Tender is not open for bidding")
     changes = payload.model_dump(exclude_unset=True, exclude_none=True)
     if changes:
+        _validate_tender_values(
+            changes.get("base_price", tender.base_price),
+            changes.get("ceiling_price", tender.ceiling_price),
+            changes.get("deadline", tender.deadline),
+        )
         try:
             for name, value in changes.items():
                 setattr(tender, name, value)
@@ -174,6 +205,7 @@ def publish_tender(db: Any, tender_id: int, actor_id: int, ip: str | None) -> An
     tender = get_tender_or_404(db, tender_id)
     if tender.status != DRAFT:
         raise AdminError(409, "Tender is not open for bidding")
+    _validate_tender_values(tender.base_price, tender.ceiling_price, tender.deadline)
     try:
         tender.status = PUBLISHED
         deps.log_action(
@@ -199,6 +231,7 @@ def close_tender(db: Any, tender_id: int, actor_id: int, ip: str | None) -> Any:
         if tender.status == PUBLISHED:
             try:
                 tender.status = CLOSED
+                tender.closed_at = datetime.now(timezone.utc)
                 deps.log_action(
                     db,
                     actor_id=actor_id,
@@ -209,6 +242,7 @@ def close_tender(db: Any, tender_id: int, actor_id: int, ip: str | None) -> Any:
                 )
                 _safe_commit(db)
                 db.refresh(tender)
+                deps.run_collusion_scan(db, actor_id=actor_id, ip_address=ip)
             except Exception:
                 db.rollback()
                 raise
@@ -223,8 +257,8 @@ def get_ranking(db: Any, tender_id: int, ip: str | None = None) -> dict:
     tender = refresh_status(db, tender, ip)
     if tender.status == DRAFT:
         raise AdminError(409, "Tender is not open for bidding")
-    if not _deadline_passed(tender):
-        raise AdminError(409, "Bids are sealed until the deadline")
+    if not _opening_time_passed(tender):
+        raise AdminError(409, "Bids are sealed until the tender's opening time")
     try:
         return deps.rank_bids(db, tender_id)
     except AdminError:
@@ -241,8 +275,8 @@ def get_collusion_flags(db: Any, tender_id: int, ip: str | None = None) -> list[
     tender = refresh_status(db, tender, ip)
     if tender.status == DRAFT:
         raise AdminError(409, "Tender is not open for bidding")
-    if not _deadline_passed(tender):
-        raise AdminError(409, "Bids are sealed until the deadline")
+    if not _opening_time_passed(tender):
+        raise AdminError(409, "Bids are sealed until the tender's opening time")
     CollusionFlag = deps.get_model("CollusionFlag")
     return list(
         db.execute(
@@ -264,15 +298,18 @@ def award_tender(
     tender = refresh_status(db, tender, ip)
     if tender.status == DRAFT:
         raise AdminError(409, "Tender is not open for bidding")
-    if not _deadline_passed(tender):
-        raise AdminError(409, "Bids are sealed until the deadline")
+    if not _opening_time_passed(tender):
+        raise AdminError(409, "Bids are sealed until the tender's opening time")
     if tender.status != CLOSED:
         raise AdminError(409, "Tender is not open for bidding")
 
     ranking = get_ranking(db, tender_id, ip)
     eligible_ids = {int(row["bid_id"]) for row in ranking.get("ranking", [])}
     if payload.winning_bid_id not in eligible_ids:
-        raise AdminError(404, "Tender not found")
+        raise AdminError(
+            422,
+            "winning_bid_id must identify an eligible current bid for this tender",
+        )
 
     Award = deps.get_model("Award")
     award = Award(

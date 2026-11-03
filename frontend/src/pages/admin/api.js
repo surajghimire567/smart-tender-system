@@ -3,16 +3,18 @@ import { clearSession, getDeviceId, getToken } from "./deps.jsx";
 const API_BASE = "http://localhost:8000";
 
 export async function adminRequest(path, options = {}) {
-  const headers = new Headers(options.headers || {});
+  const { backgroundRefresh = false, ...fetchOptions } = options;
+  const headers = new Headers(fetchOptions.headers || {});
   const token = getToken();
   const deviceId = getDeviceId();
   if (token) headers.set("Authorization", `Bearer ${token}`);
   headers.set("X-Device-Id", deviceId || "unknown");
-  if (options.body && !headers.has("Content-Type")) {
+  if (backgroundRefresh) headers.set("X-Background-Refresh", "true");
+  if (fetchOptions.body && !headers.has("Content-Type")) {
     headers.set("Content-Type", "application/json");
   }
 
-  const response = await fetch(`${API_BASE}${path}`, { ...options, headers });
+  const response = await fetch(`${API_BASE}${path}`, { ...fetchOptions, headers });
   const payload = response.status === 204 ? null : await response.json().catch(() => null);
 
   if (response.status === 401) {

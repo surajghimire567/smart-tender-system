@@ -38,6 +38,7 @@ def _tender_out(tender: Any) -> dict[str, Any]:
         "base_price": tender.base_price,
         "ceiling_price": tender.ceiling_price,
         "deadline": tender.deadline,
+        "closed_at": tender.closed_at,
         "status": tender.status,
         "created_at": tender.created_at,
         "is_open": service.is_open(tender),
@@ -55,12 +56,13 @@ def _admin_error(db: Session, exc: Exception) -> None:
 
 @router.get("/tenders", response_model=list[TenderOut])
 def list_admin_tenders(
+    request: Request,
     db: Session = Depends(deps.get_db),
     _admin: Any = Depends(deps.require_admin),
 ):
     """Admin dashboard tender list; overdue published tenders are lazily closed."""
     try:
-        tenders = service.list_tenders(db)
+        tenders = service.list_tenders(db, _ip(request))
         return [_tender_out(tender) for tender in tenders]
     except Exception as exc:
         _admin_error(db, exc)
@@ -151,13 +153,24 @@ def get_tender_ranking(
     request: Request,
     tender_id: int = Path(..., gt=0),
     db: Session = Depends(deps.get_db),
-    _admin: Any = Depends(deps.require_admin),
+    admin: Any = Depends(deps.require_admin),
 ):
-    """The P3 ranking service is called only after the server-side deadline check."""
+    """The P3 ranking service is called only after the server-side opening-time check."""
     try:
-        return service.get_ranking(
-            db, tender_id, _ip(request)
+        result = service.get_ranking(db, tender_id, _ip(request))
+        deps.log_action(
+            db,
+            actor_id=_actor_id(admin),
+            action="RANKING_VIEWED",
+            tender_id=tender_id,
+            ip_address=_ip(request),
+            details={
+                "ranked_bids": result.get("ranked", 0),
+                "excluded_bids": len(result.get("excluded", [])),
+            },
         )
+        db.commit()
+        return result
     except Exception as exc:
         _admin_error(db, exc)
 
@@ -167,12 +180,21 @@ def get_tender_flags(
     request: Request,
     tender_id: int = Path(..., gt=0),
     db: Session = Depends(deps.get_db),
-    _admin: Any = Depends(deps.require_admin),
+    admin: Any = Depends(deps.require_admin),
 ):
     try:
         flags = service.get_collusion_flags(
             db, tender_id, _ip(request)
         )
+        deps.log_action(
+            db,
+            actor_id=_actor_id(admin),
+            action="COLLUSION_FLAGS_VIEWED",
+            tender_id=tender_id,
+            ip_address=_ip(request),
+            details={"flag_count": len(flags)},
+        )
+        db.commit()
         return [CollusionFlagOut.model_validate(flag) for flag in flags]
     except Exception as exc:
         _admin_error(db, exc)

@@ -9,12 +9,12 @@ export default function MyBids() {
   const [rows, setRows] = useState([]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
-  const load = useCallback(async () => {
-    try { setError(""); setRows(await apiRequest("/vendor/bids")); }
+  const load = useCallback(async ({ backgroundRefresh = false } = {}) => {
+    try { setError(""); setRows(await apiRequest("/vendor/bids", { backgroundRefresh })); }
     catch (err) { setError(err.message); }
     finally { setLoading(false); }
   }, []);
-  useEffect(() => { load(); const timer = window.setInterval(load, 20000); return () => window.clearInterval(timer); }, [load]);
+  useEffect(() => { load(); const timer = window.setInterval(() => load({ backgroundRefresh: true }), 20000); return () => window.clearInterval(timer); }, [load]);
 
   return (
     <main className="vendor-page">

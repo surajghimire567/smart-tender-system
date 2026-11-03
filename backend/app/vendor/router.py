@@ -181,12 +181,13 @@ def auth_me(user: Any = Depends(deps.get_current_user)):
 # ---- Vendor tender browsing ----
 @router.get("/tenders", response_model=list[VendorTenderItem])
 def list_tenders(
+    request: Request,
     status_filter: str = Query(default="published", alias="status", pattern="^published$"),
     db: Session = Depends(deps.get_db),
     vendor: Any = Depends(deps.require_role("vendor")),
 ):
     del status_filter  # the vendor API intentionally exposes published tenders only
-    deps.refresh_all_overdue(db)
+    deps.refresh_all_overdue(db, service.client_ip(request))
     Tender = deps.get_model("Tender")
     rows = db.execute(
         select(Tender)
@@ -282,6 +283,17 @@ def place_bid(
             ip_address,
             supersedes_bid_id=supersedes_bid_id,
         )
+        deps.log_action(
+            db,
+            actor_id=int(vendor.id),
+            action="BID_REVISED" if supersedes_bid_id is not None else "BID_SUBMITTED",
+            tender_id=tender_id,
+            ip_address=ip_address,
+            details={
+                "bid_hash": receipt["bid_hash"],
+                "supersedes_bid_id": supersedes_bid_id,
+            },
+        )
         db.commit()
     except deps.BidClosedError:
         db.rollback()
@@ -328,13 +340,14 @@ def my_result(
     if result is None:
         raise HTTPException(status_code=404, detail="No bid from you on this tender")
     result = VendorResultOut.model_validate(result)
-    deps.log_action(
-        db,
-        actor_id=int(vendor.id),
-        action="VENDOR_RESULT_VIEWED",
-        tender_id=tender_id,
-        ip_address=service.client_ip(request),
-        details={"my_rank": result.my_rank},
-    )
-    _commit(db)
+    if request.headers.get("x-background-refresh", "").lower() != "true":
+        deps.log_action(
+            db,
+            actor_id=int(vendor.id),
+            action="VENDOR_RESULT_VIEWED",
+            tender_id=tender_id,
+            ip_address=service.client_ip(request),
+            details={"my_rank": result.my_rank},
+        )
+        _commit(db)
     return result
