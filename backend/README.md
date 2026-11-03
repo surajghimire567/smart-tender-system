@@ -51,3 +51,15 @@ schema with:
     python -m scripts.week6_e2e
 
 The test runner drops its temporary schema when it finishes.
+
+For a fresh database, apply the shared schema and create the auction tables
+before starting the API:
+
+    alembic upgrade head
+    python -m scripts.create_tables
+
+The second command creates the bids table and installs its database lock. It
+also verifies the collusion-flag locks.
+
+The repository root .env must also define JWT_SECRET; the backend refuses to
+start when that secret is missing.
