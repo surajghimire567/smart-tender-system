@@ -1,0 +1,6 @@
+.auth-shell { max-width: 30rem; margin: 3rem auto; padding: 1.5rem; }
+.auth-card { display: grid; gap: 1rem; padding: 1.5rem; border: 1px solid #d5dbe3; border-radius: .75rem; background: #fff; }
+.auth-card label { display: grid; gap: .35rem; font-weight: 600; }
+.auth-card input { padding: .65rem .75rem; border: 1px solid #9aa6b2; border-radius: .4rem; font: inherit; }
+.auth-card button { padding: .7rem; border: 0; border-radius: .4rem; background: #173b63; color: white; font: inherit; cursor: pointer; }
+.auth-error { color: #a61b1b; }

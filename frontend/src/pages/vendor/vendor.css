@@ -1,0 +1,15 @@
+.vendor-page { max-width: 70rem; margin: 2rem auto; padding: 0 1rem 3rem; color: #172b43; }
+.vendor-header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.vendor-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); gap: 1rem; }
+.vendor-card { border: 1px solid #d5dbe3; border-radius: .7rem; padding: 1rem; background: #fff; }
+.vendor-card h2 { margin-top: 0; }
+.vendor-form { display: grid; gap: .75rem; max-width: 28rem; margin-top: 1rem; }
+.vendor-form input { padding: .65rem; border: 1px solid #9aa6b2; border-radius: .4rem; font: inherit; }
+.vendor-button { display: inline-block; padding: .55rem .8rem; border: 0; border-radius: .4rem; background: #173b63; color: #fff; font: inherit; text-decoration: none; cursor: pointer; }
+.vendor-muted { color: #566579; }
+.vendor-error { color: #a61b1b; }
+.vendor-hash { overflow-wrap: anywhere; font-family: monospace; }
+.vendor-actions { display: flex; align-items: center; gap: .75rem; flex-wrap: wrap; }
+.vendor-table-wrap { overflow-x: auto; }
+.vendor-table { width: 100%; border-collapse: collapse; }
+.vendor-table th, .vendor-table td { padding: .65rem; border-bottom: 1px solid #d5dbe3; text-align: left; }

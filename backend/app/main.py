@@ -10,7 +10,7 @@ from app.audit.middleware import AuditMiddleware
 # ---- router imports ----
 from app.admin.router import router as admin_router
 
-# [slot: vendor import]
+from app.vendor.router import router as vendor_router
 
 # [slot: auction import]
 from app.auction.router import router as auction_router
@@ -25,14 +25,14 @@ app.add_middleware(
     allow_origins=["http://localhost:5173"],  # Vite (React) dev server
     allow_credentials=True,
     allow_methods=["*"],
-    allow_headers=["*"],
+    allow_headers=["Authorization", "Content-Type", "X-Device-Id"],
 )
 app.add_middleware(AuditMiddleware)
 
 # ---- router registration ----
 app.include_router(admin_router)
 
-# [slot: vendor router]
+app.include_router(vendor_router)
 
 app.include_router(auction_router)
 

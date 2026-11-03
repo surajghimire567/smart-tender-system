@@ -16,3 +16,4 @@ def _required(name: str) -> str:
 DATABASE_URL = _required("DATABASE_URL")
 FERNET_KEY = _required("FERNET_KEY")
 RECEIPT_SALT = _required("RECEIPT_SALT")
+JWT_SECRET = _required("JWT_SECRET")
