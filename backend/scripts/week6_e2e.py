@@ -30,7 +30,7 @@ from app.config import DATABASE_URL
 from app.main import app
 from app.models import AuditLog, Base, Tender, User
 from app.vendor import router as vendor_router
-from app.vendor.security import hash_password
+from app.vendor.security import hash_password, verify_password
 from scripts.demo_seed import seed_demo_data
 
 
@@ -456,9 +456,30 @@ def run() -> None:
                 admin_password="Viva-Seed-Admin!",
                 vendor_password="Viva-Seed-Vendor!",
             )
+            seed_reset = seed_demo_data(
+                db,
+                admin_password="Viva-Seed-Admin-Reset!",
+                vendor_password="Viva-Seed-Vendor-Reset!",
+                reset_passwords=True,
+            )
             assert seed_once["created"] is True
             assert seed_twice["created"] is False
+            assert seed_reset["created"] is False
             assert seed_once["tender_ids"] == seed_twice["tender_ids"]
+            seeded_admin = db.execute(
+                select(User).where(User.email == seed_reset["admin_email"])
+            ).scalar_one()
+            seeded_vendors = db.scalars(
+                select(User).where(User.email.in_(seed_reset["vendor_emails"]))
+            ).all()
+            assert verify_password("Viva-Seed-Admin-Reset!", seeded_admin.password_hash)
+            assert not verify_password("Viva-Seed-Admin!", seeded_admin.password_hash)
+            assert len(seeded_vendors) == 3
+            assert all(
+                verify_password("Viva-Seed-Vendor-Reset!", vendor.password_hash)
+                and not verify_password("Viva-Seed-Vendor!", vendor.password_hash)
+                for vendor in seeded_vendors
+            )
             scan_seed = run_collusion_scan(
                 db,
                 actor_id=None,
@@ -466,7 +487,7 @@ def run() -> None:
             )
             assert scan_seed["pairs_flagged"] >= 1
             assert scan_seed["new_flags"] >= 3
-        print("[OK] viva seed is idempotent and its real closed tenders produce pair flags")
+        print("[OK] viva seed is idempotent, resets passwords, and its real closed tenders produce pair flags")
         print("WEEK6_E2E_PASS")
 
     finally:

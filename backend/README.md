@@ -45,6 +45,11 @@ pair is 1.50%, 1.60%, and 1.80% apart across the tenders. The fixed demo emails
 are printed with the tender IDs. Rerunning the seed reuses the dataset and does
 not create duplicate tenders.
 
+If the demo accounts already exist and their passwords are forgotten, rerun the
+command with `--reset-passwords` and supply new values for `--admin-password`
+and `--vendor-password`. This updates those demo accounts without deleting
+tenders or bids.
+
 Run the Week 6 authenticated API flow and edge cases in a disposable PostgreSQL
 schema with:
 

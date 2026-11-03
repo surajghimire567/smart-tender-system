@@ -54,6 +54,7 @@ def _ensure_user(
     name: str,
     company_name: str | None = None,
     registration_number: str | None = None,
+    reset_password: bool = False,
 ) -> User:
     user = db.execute(
         select(User).where(User.email == email.lower())
@@ -61,6 +62,8 @@ def _ensure_user(
     if user is not None:
         if user.role != role:
             raise ValueError(f"{email} exists with role {user.role}, expected {role}")
+        if reset_password:
+            user.password_hash = hash_password(password)
         return user
     user = User(
         name=name,
@@ -82,6 +85,7 @@ def seed_demo_data(
     admin_password: str,
     vendor_password: str,
     admin_email: str = DEFAULT_ADMIN_EMAIL,
+    reset_passwords: bool = False,
 ) -> dict:
     """Insert the viva admin, three vendors, tenders, and sealed bid records."""
     admin = _ensure_user(
@@ -90,6 +94,7 @@ def seed_demo_data(
         role="admin",
         password=admin_password,
         name="Viva Administrator",
+        reset_password=reset_passwords,
     )
     vendors = [
         _ensure_user(
@@ -100,6 +105,7 @@ def seed_demo_data(
             name=f"Viva Vendor {index}",
             company_name=f"Viva Supplier {index}",
             registration_number=f"VIVA-DEMO-{index}",
+            reset_password=reset_passwords,
         )
         for index, email in enumerate(DEFAULT_VENDOR_EMAILS, start=1)
     ]
@@ -118,6 +124,7 @@ def seed_demo_data(
                 "A partial viva seed already exists. Review those demo tenders "
                 "before running the seed again."
             )
+        db.commit()
         return {
             "admin_email": admin.email,
             "vendor_emails": [vendor.email for vendor in vendors],
@@ -183,6 +190,11 @@ def main() -> None:
     parser.add_argument("--admin-password", required=True)
     parser.add_argument("--vendor-password", required=True)
     parser.add_argument("--admin-email", default=DEFAULT_ADMIN_EMAIL)
+    parser.add_argument(
+        "--reset-passwords",
+        action="store_true",
+        help="Reset the existing demo admin and vendor passwords to the supplied values",
+    )
     parser.add_argument("--schema", help="Optional existing PostgreSQL schema")
     args = parser.parse_args()
 
@@ -194,11 +206,14 @@ def main() -> None:
                 admin_password=args.admin_password,
                 vendor_password=args.vendor_password,
                 admin_email=args.admin_email,
+                reset_passwords=args.reset_passwords,
             )
         state = "created" if result["created"] else "already present"
         print(f"Viva seed {state}.")
         print(f"Admin login: {result['admin_email']}")
         print("Vendor logins: " + ", ".join(result["vendor_emails"]))
+        if args.reset_passwords:
+            print("Demo account passwords now match the supplied command-line values.")
         print("Tenders: " + ", ".join(str(value) for value in result["tender_ids"]))
         if result["created"]:
             print("The same vendor pair is 1.50%, 1.60%, and 1.80% apart in the three tenders.")
