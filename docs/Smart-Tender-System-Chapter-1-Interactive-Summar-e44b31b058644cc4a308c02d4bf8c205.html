@@ -1,0 +1,794 @@
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"/><title>Smart Tender System — Chapter 1 Interactive Summary</title><meta name="data-notion-page-icon" content="🛡️"/><link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Ctext%20y%3D%22.9em%22%20font-size%3D%2290%22%3E%F0%9F%9B%A1%EF%B8%8F%3C%2Ftext%3E%3C%2Fsvg%3E"/><style>
+/* cspell:disable-file */
+/* webkit printing magic: print all background colors */
+html {
+	-webkit-print-color-adjust: exact;
+}
+* {
+	box-sizing: border-box;
+	-webkit-print-color-adjust: exact;
+}
+
+html,
+body {
+	margin: 0;
+	padding: 0;
+}
+@media only screen {
+	body {
+		margin: 2em auto;
+		max-width: 900px;
+		color: rgb(55, 53, 47);
+	}
+}
+
+body {
+	line-height: 1.5;
+	white-space: pre-wrap;
+}
+
+a,
+a.visited {
+	color: inherit;
+	text-decoration: underline;
+}
+
+.pdf-relative-link-path {
+	font-size: 80%;
+	color: #444;
+}
+
+h1,
+h2,
+h3 {
+	letter-spacing: -0.01em;
+	line-height: 1.2;
+	font-weight: 600;
+	margin-bottom: 0;
+}
+
+/* Override strong tags inside headings to maintain consistent weight */
+h1 strong,
+h2 strong,
+h3 strong {
+	font-weight: 600;
+}
+
+.page-title {
+	font-size: 2.5rem;
+	font-weight: 700;
+	margin-top: 0;
+	margin-bottom: 0.75em;
+}
+
+h1 {
+	font-size: 1.875rem;
+	margin-top: 1.875rem;
+}
+
+h2 {
+	font-size: 1.5rem;
+	margin-top: 1.5rem;
+}
+
+h3 {
+	font-size: 1.25rem;
+	margin-top: 1.25rem;
+}
+
+.source {
+	border: 1px solid #ddd;
+	border-radius: 3px;
+	padding: 1.5em;
+	word-break: break-all;
+}
+
+.callout {
+	border-radius: 10px;
+	padding: 1rem;
+}
+
+/* For default-background callouts, render the border outline. */
+.callout.block-color-default_background {
+	border: 1px solid rgba(55, 53, 47, 0.09);
+}
+
+figure {
+	margin: 1.25em 0;
+	page-break-inside: avoid;
+}
+
+/*
+ * Toggles and callouts hold arbitrary content, so they can easily be taller
+ * than a page. They must stay breakable: avoiding breaks inside them makes
+ * Chromium push the whole block onto the next page, which leaves the previous
+ * page mostly empty before every long toggle.
+ */
+details,
+aside {
+	margin: 1.25em 0;
+}
+
+/* Keep a toggle's title on the same page as the start of its content. */
+summary {
+	page-break-after: avoid;
+	break-after: avoid;
+}
+
+/*
+ * Toggle headings render as <h1/h2/h3 style="display:inline-block"> inside
+ * <summary>. Without this reset, the heading's margin-top pushes it below the
+ * ::marker (▼), so the triangle and the title appear on separate lines.
+ */
+summary h1,
+summary h2,
+summary h3,
+summary h4 {
+	margin-top: 0;
+}
+
+figcaption {
+	opacity: 0.5;
+	font-size: 85%;
+	margin-top: 0.5em;
+}
+
+mark {
+	background-color: transparent;
+}
+
+.indented {
+	padding-left: 1.5em;
+}
+
+hr {
+	background: transparent;
+	display: block;
+	width: 100%;
+	height: 1px;
+	visibility: visible;
+	border: none;
+	border-bottom: 1px solid rgba(55, 53, 47, 0.09);
+}
+
+img {
+	max-width: 100%;
+}
+
+@media only print {
+	img {
+		max-height: 100vh;
+		object-fit: contain;
+	}
+
+	table.collection-content {
+		width: 100%;
+		table-layout: fixed;
+	}
+
+	table.collection-content th,
+	table.collection-content td {
+		overflow-wrap: anywhere;
+	}
+
+	table.collection-content td > .user,
+	table.collection-content td > time {
+		white-space: pre-wrap;
+	}
+}
+
+@page {
+	margin: 1in;
+}
+
+.collection-content-wrapper {
+	overflow-x: auto;
+}
+
+@media only print {
+	.collection-content-wrapper {
+		overflow-x: visible;
+	}
+}
+
+.collection-content {
+	font-size: 0.875rem;
+}
+
+.collection-content td {
+	white-space: pre-wrap;
+	word-break: break-word;
+}
+
+.column-list {
+	display: flex;
+	gap: 46px;
+}
+
+.column {
+	min-width: 0;
+	overflow: hidden;
+}
+
+.column > *:first-child {
+	margin-top: 0;
+}
+
+.table_of_contents-item {
+	display: block;
+	font-size: 0.875rem;
+	line-height: 1.3;
+	padding-inline: 0.125rem;
+	padding-block: 0.375rem;
+}
+
+.table_of_contents-indent-1 {
+	margin-left: 1.5rem;
+}
+
+.table_of_contents-indent-2 {
+	margin-left: 3rem;
+}
+
+.table_of_contents-indent-3 {
+	margin-left: 4.5rem;
+}
+
+.table_of_contents-link {
+	text-decoration: none;
+	opacity: 0.7;
+	border-bottom: 1px solid rgba(55, 53, 47, 0.18);
+}
+
+table,
+th,
+td {
+	border: 1px solid rgba(55, 53, 47, 0.09);
+}
+
+table {
+	border-collapse: collapse;
+	border-left: none;
+	border-right: none;
+}
+
+th,
+td {
+	font-weight: normal;
+	padding: 0.25em 0.5em;
+	line-height: 1.5;
+	min-height: 1.5em;
+	text-align: left;
+}
+
+th {
+	color: rgba(55, 53, 47, 0.6);
+}
+
+ol,
+ul {
+	margin: 0;
+	margin-block-start: 0.6em;
+	margin-block-end: 0.6em;
+}
+
+li > ol:first-child,
+li > ul:first-child {
+	margin-block-start: 0.6em;
+}
+
+ul > li {
+	list-style: disc;
+}
+
+ul.to-do-list {
+	padding-inline-start: 0;
+}
+
+ul.to-do-list > li {
+	list-style: none;
+}
+
+.to-do-children-checked {
+	text-decoration: line-through;
+	opacity: 0.375;
+}
+
+ul.toggle > li {
+	list-style: none;
+}
+
+ul {
+	padding-inline-start: 1.7em;
+}
+
+ul > li {
+	padding-left: 0.1em;
+}
+
+ol {
+	padding-inline-start: 1.6em;
+}
+
+ol.numbered-list.numbered-list-digits-2 {
+	padding-inline-start: 2em;
+}
+
+ol.numbered-list.numbered-list-digits-3plus {
+	padding-inline-start: 2.4em;
+}
+
+ol > li {
+	padding-left: 0.2em;
+}
+
+.mono ol {
+	padding-inline-start: 2em;
+}
+
+.mono ol > li {
+	text-indent: -0.4em;
+}
+
+.toggle {
+	padding-inline-start: 0em;
+	list-style-type: none;
+}
+
+/* Indent toggle children */
+.toggle > li > details {
+	padding-left: 1.7em;
+}
+
+.toggle > li > details > summary {
+	margin-left: -1.1em;
+}
+
+.selected-value {
+	display: inline-block;
+	padding: 0 0.5em;
+	background: rgba(206, 205, 202, 0.5);
+	border-radius: 3px;
+	margin-right: 0.5em;
+	margin-top: 0.3em;
+	margin-bottom: 0.3em;
+	white-space: nowrap;
+}
+
+.collection-title {
+	display: inline-block;
+	margin-right: 1em;
+}
+
+.page-description {
+	margin-bottom: 2em;
+}
+
+.simple-table {
+	margin-top: 1em;
+	font-size: 0.875rem;
+	empty-cells: show;
+}
+.simple-table td {
+	height: 29px;
+	min-width: 120px;
+}
+
+.simple-table th {
+	height: 29px;
+	min-width: 120px;
+}
+
+.simple-table-header-color {
+	background: rgb(247, 246, 243);
+	color: black;
+}
+.simple-table-header {
+	font-weight: 500;
+}
+
+time {
+	opacity: 0.5;
+}
+
+.icon {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	max-width: 1.2em;
+	max-height: 1.2em;
+	text-decoration: none;
+	vertical-align: text-bottom;
+	margin-right: 0.5em;
+}
+
+/*
+ * Render emoji icons using a ::before pseudo-element to keep the glyph
+ * out of the DOM textContent traversal. This avoids double-rendering icons
+ * in callouts and page titles.
+ * NOTE(slim/html-export-pseudo-icons): I can't tagref this because it will
+ * flag as a duplicate tag after codegen.
+ */
+.icon[data-emoji]::before {
+	content: attr(data-emoji);
+}
+
+img.icon {
+	border-radius: 3px;
+}
+
+.callout img.notion-static-icon {
+	width: 1em;
+	height: 1em;
+}
+
+.callout p {
+	margin: 0;
+}
+
+.callout h1,
+.callout h2,
+.callout h3 {
+	margin: 0 0 0.6rem;
+}
+
+.user-icon {
+	width: 1.5em;
+	height: 1.5em;
+	border-radius: 100%;
+	margin-right: 0.5rem;
+}
+
+.user-icon-inner {
+	font-size: 0.8em;
+}
+
+.text-icon {
+	border: 1px solid #000;
+	text-align: center;
+}
+
+.page-cover-image {
+	display: block;
+	object-fit: cover;
+	width: 100%;
+	max-height: 30vh;
+}
+
+.page-header-icon {
+	font-size: 3rem;
+	margin-bottom: 1rem;
+}
+
+.page-header-icon-with-cover {
+	margin-top: -0.72em;
+	margin-left: 0.07em;
+}
+
+.page-header-icon img {
+	border-radius: 3px;
+}
+
+.link-to-page {
+	margin: 1em 0;
+	padding: 0;
+	border: none;
+	font-weight: 500;
+}
+
+p > .user {
+	opacity: 0.5;
+}
+
+td > .user,
+td > time {
+	white-space: nowrap;
+}
+
+input[type="checkbox"] {
+	margin-right: 0.4em;
+	vertical-align: middle;
+}
+
+p {
+	margin-top: 0.5em;
+	margin-bottom: 0.5em;
+}
+
+.image {
+	border: none;
+	margin: 1.5em 0;
+	padding: 0;
+	border-radius: 0;
+	text-align: center;
+}
+
+.code,
+code {
+	background: rgba(135, 131, 120, 0.15);
+	border-radius: 3px;
+	padding: 0.2em 0.4em;
+	border-radius: 3px;
+	font-size: 85%;
+	tab-size: 2;
+}
+
+code {
+	color: #eb5757;
+}
+
+.code {
+	padding: 1.5em 1em;
+}
+
+.code-wrap {
+	white-space: pre-wrap;
+	word-break: break-all;
+}
+
+.code > code {
+	background: none;
+	padding: 0;
+	font-size: 100%;
+	color: inherit;
+}
+
+blockquote {
+	font-size: 1em;
+	margin: 1em 0;
+	padding-left: 1em;
+	border-left: 3px solid rgb(55, 53, 47);
+}
+
+blockquote.quote-large {
+	font-size: 1.25em;
+}
+
+.bookmark {
+	text-decoration: none;
+	max-height: 8em;
+	padding: 0;
+	display: flex;
+	width: 100%;
+	align-items: stretch;
+}
+
+.bookmark-title {
+	font-size: 0.85em;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	height: 1.75em;
+	white-space: nowrap;
+}
+
+.bookmark-text {
+	display: flex;
+	flex-direction: column;
+}
+
+.bookmark-info {
+	flex: 4 1 180px;
+	padding: 12px 14px 14px;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+}
+
+.bookmark-image {
+	width: 33%;
+	flex: 1 1 180px;
+	display: block;
+	position: relative;
+	object-fit: cover;
+	border-radius: 1px;
+}
+
+.bookmark-description {
+	color: rgba(55, 53, 47, 0.6);
+	font-size: 0.75em;
+	overflow: hidden;
+	max-height: 4.5em;
+	word-break: break-word;
+}
+
+.bookmark-href {
+	font-size: 0.75em;
+	margin-top: 0.25em;
+}
+
+.tab {
+	margin: 1.25em 0;
+	padding-inline: 1rem;
+	border: 1px solid rgba(55, 53, 47, 0.09);
+}
+
+.sans { font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", "Noto Sans Arabic", "Noto Sans Hebrew", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol"; }
+.code { font-family: "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace; }
+.serif { font-family: Lyon-Text, Georgia, ui-serif, serif; }
+.mono { font-family: iawriter-mono, Nitti, Menlo, Courier, monospace; }
+.pdf .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", "Noto Sans Arabic", "Noto Sans Hebrew", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK JP'; }
+.pdf:lang(zh-CN) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", "Noto Sans Arabic", "Noto Sans Hebrew", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK SC'; }
+.pdf:lang(zh-TW) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", "Noto Sans Arabic", "Noto Sans Hebrew", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK TC'; }
+.pdf:lang(ko-KR) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", "Noto Sans Arabic", "Noto Sans Hebrew", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK KR'; }
+.pdf .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK JP'; }
+.pdf:lang(zh-CN) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK SC'; }
+.pdf:lang(zh-TW) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK TC'; }
+.pdf:lang(ko-KR) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK KR'; }
+.pdf .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK JP'; }
+.pdf:lang(zh-CN) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK SC'; }
+.pdf:lang(zh-TW) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK TC'; }
+.pdf:lang(ko-KR) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK KR'; }
+.pdf .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK JP'; }
+.pdf:lang(zh-CN) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK SC'; }
+.pdf:lang(zh-TW) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK TC'; }
+.pdf:lang(ko-KR) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK KR'; }
+.highlight-default {
+	color: rgba(44, 44, 43, 1);
+}
+.highlight-gray {
+	color: rgba(125, 122, 117, 1);
+	fill: rgba(125, 122, 117, 1);
+}
+.highlight-brown {
+	color: rgba(159, 118, 90, 1);
+	fill: rgba(159, 118, 90, 1);
+}
+.highlight-orange {
+	color: rgba(210, 123, 45, 1);
+	fill: rgba(210, 123, 45, 1);
+}
+.highlight-yellow {
+	color: rgba(203, 148, 52, 1);
+	fill: rgba(203, 148, 52, 1);
+}
+.highlight-teal {
+	color: rgba(80, 148, 110, 1);
+	fill: rgba(80, 148, 110, 1);
+}
+.highlight-blue {
+	color: rgba(56, 125, 201, 1);
+	fill: rgba(56, 125, 201, 1);
+}
+.highlight-purple {
+	color: rgba(154, 107, 180, 1);
+	fill: rgba(154, 107, 180, 1);
+}
+.highlight-pink {
+	color: rgba(193, 76, 138, 1);
+	fill: rgba(193, 76, 138, 1);
+}
+.highlight-red {
+	color: rgba(207, 81, 72, 1);
+	fill: rgba(207, 81, 72, 1);
+}
+.highlight-default_background {
+	color: rgba(44, 44, 43, 1);
+}
+.highlight-gray_background {
+	background: rgba(42, 28, 0, 0.07);
+}
+.highlight-brown_background {
+	background: rgba(139, 46, 0, 0.086);
+}
+.highlight-orange_background {
+	background: rgba(224, 101, 1, 0.129);
+}
+.highlight-yellow_background {
+	background: rgba(211, 168, 0, 0.137);
+}
+.highlight-teal_background {
+	background: rgba(0, 100, 45, 0.09);
+}
+.highlight-blue_background {
+	background: rgba(0, 124, 215, 0.094);
+}
+.highlight-purple_background {
+	background: rgba(102, 0, 178, 0.078);
+}
+.highlight-pink_background {
+	background: rgba(197, 0, 93, 0.086);
+}
+.highlight-red_background {
+	background: rgba(223, 22, 0, 0.094);
+}
+.block-color-default {
+	color: inherit;
+	fill: inherit;
+}
+.block-color-gray {
+	color: rgba(125, 122, 117, 1);
+	fill: rgba(125, 122, 117, 1);
+}
+.block-color-brown {
+	color: rgba(159, 118, 90, 1);
+	fill: rgba(159, 118, 90, 1);
+}
+.block-color-orange {
+	color: rgba(210, 123, 45, 1);
+	fill: rgba(210, 123, 45, 1);
+}
+.block-color-yellow {
+	color: rgba(203, 148, 52, 1);
+	fill: rgba(203, 148, 52, 1);
+}
+.block-color-teal {
+	color: rgba(80, 148, 110, 1);
+	fill: rgba(80, 148, 110, 1);
+}
+.block-color-blue {
+	color: rgba(56, 125, 201, 1);
+	fill: rgba(56, 125, 201, 1);
+}
+.block-color-purple {
+	color: rgba(154, 107, 180, 1);
+	fill: rgba(154, 107, 180, 1);
+}
+.block-color-pink {
+	color: rgba(193, 76, 138, 1);
+	fill: rgba(193, 76, 138, 1);
+}
+.block-color-red {
+	color: rgba(207, 81, 72, 1);
+	fill: rgba(207, 81, 72, 1);
+}
+.block-color-default_background {
+	color: inherit;
+	fill: inherit;
+}
+.block-color-gray_background {
+	background: rgba(240, 239, 237, 1);
+}
+.block-color-brown_background {
+	background: rgba(245, 237, 233, 1);
+}
+.block-color-orange_background {
+	background: rgba(251, 235, 222, 1);
+}
+.block-color-yellow_background {
+	background: rgba(249, 243, 220, 1);
+}
+.block-color-teal_background {
+	background: rgba(232, 241, 236, 1);
+}
+.block-color-blue_background {
+	background: rgba(229, 242, 252, 1);
+}
+.block-color-purple_background {
+	background: rgba(243, 235, 249, 1);
+}
+.block-color-pink_background {
+	background: rgba(250, 233, 241, 1);
+}
+.block-color-red_background {
+	background: rgba(252, 233, 231, 1);
+}
+.select-value-color-default { background-color: rgba(42, 28, 0, 0.07); }
+.select-value-color-gray { background-color: rgba(28, 19, 1, 0.11); }
+.select-value-color-brown { background-color: rgba(127, 51, 0, 0.156); }
+.select-value-color-orange { background-color: rgba(196, 88, 0, 0.203); }
+.select-value-color-yellow { background-color: rgba(209, 156, 0, 0.282); }
+.select-value-color-green { background-color: rgba(0, 96, 38, 0.156); }
+.select-value-color-blue { background-color: rgba(0, 118, 217, 0.203); }
+.select-value-color-purple { background-color: rgba(92, 0, 163, 0.141); }
+.select-value-color-pink { background-color: rgba(183, 0, 78, 0.152); }
+.select-value-color-red { background-color: rgba(206, 24, 0, 0.164); }
+
+.checkbox {
+	display: inline-flex;
+	vertical-align: text-bottom;
+	width: 16;
+	height: 16;
+	background-size: 16px;
+	margin-left: 2px;
+	margin-right: 5px;
+}
+
+.checkbox-on {
+	background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%3Crect%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22%2358A9D7%22%2F%3E%0A%3Cpath%20d%3D%22M6.71429%2012.2852L14%204.9995L12.7143%203.71436L6.71429%209.71378L3.28571%206.2831L2%207.57092L6.71429%2012.2852Z%22%20fill%3D%22white%22%2F%3E%0A%3C%2Fsvg%3E");
+}
+
+.checkbox-off {
+	background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%3Crect%20x%3D%220.75%22%20y%3D%220.75%22%20width%3D%2214.5%22%20height%3D%2214.5%22%20fill%3D%22white%22%20stroke%3D%22%2336352F%22%20stroke-width%3D%221.5%22%2F%3E%0A%3C%2Fsvg%3E");
+}
+	
+</style><style>@import url('https://cdn.jsdelivr.net/npm/katex@0.16.25/dist/katex-swap.min.css')</style></head><body><article id="e44b31b0-5864-4cc4-a308-c02d4bf8c205" class="page sans" data-notion-page-icon="🛡️"><header><div class="page-header-icon undefined"><span class="icon" data-emoji="🛡️"></span></div><h1 class="page-title" dir="auto">Smart Tender System — Chapter 1 Interactive Summary</h1><p class="page-description" dir="auto"></p></header><div class="page-body"><aside class="block-color-blue_background callout" data-notion-callout="" data-notion-callout-icon="🎯" data-notion-callout-background="blue_background" style="white-space:pre-wrap;display:flex" id="c1cdaffb-9b03-45e3-92c8-8ed93eed144b" dir="ltr"><div style="font-size:1.5em"><span class="icon" data-emoji="🎯"></span></div><div style="width:100%"><p id="6c5c544c-7568-48a4-b6a6-51e61f035ddc" class="" dir="auto"><strong>Thesis in one line:</strong> Nepal&#x27;s e-GP portal digitised procurement without making it verifiable — this project rebuilds the tender lifecycle around the five specific failure points the 2026 CIB investigation exposed.</p></div></aside><nav id="36118f65-8198-496d-bbd5-fcf8fa216d28" class="table_of_contents" data-notion-toc="" dir="ltr"><div class="table_of_contents-item table_of_contents-indent-0"><a class="table_of_contents-link" href="#e941ae6e-5c03-4cf0-9613-cad8ef2dc459">At a glance</a></div><div class="table_of_contents-item table_of_contents-indent-0"><a class="table_of_contents-link" href="#c7cf6d19-b421-4c75-90b8-14390e368c3a">Explore the chapter</a></div><div class="table_of_contents-item table_of_contents-indent-0"><a class="table_of_contents-link" href="#3d6600cc-c1a8-4e95-b2d6-5a5061fab6be">Viva prep — test yourself</a></div><div class="table_of_contents-item table_of_contents-indent-0"><a class="table_of_contents-link" href="#6a7ac425-d01f-4331-b037-94e500218257">Build checklist</a></div></nav><h2 id="e941ae6e-5c03-4cf0-9613-cad8ef2dc459" class="" dir="auto">At a glance</h2><div id="bbea05e3-305b-4cd7-bec1-cb6fde433f20" class="column-list" data-notion-column-list="" dir="auto"><div id="eeb62081-59c7-4c22-a3ce-1c5151985989" style="width:25%" class="column" data-notion-column-ratio="0.25" dir="auto"><aside class="block-color-red_background callout" data-notion-callout="" data-notion-callout-icon="📑" data-notion-callout-background="red_background" style="white-space:pre-wrap;display:flex" id="3b0b1ac9-3d1a-418c-b932-c62c4d9ee738" dir="ltr"><div style="font-size:1.5em"><span class="icon" data-emoji="📑"></span></div><div style="width:100%"><p id="65477a1d-80f9-4285-b3bc-9168a7aae1bc" class="" dir="auto"><strong>313</strong></p><p id="89a143c3-b5a8-4140-a78e-641ffac7d60d" class="" dir="auto">Government contracts with altered bid rates</p></div></aside></div><div id="0ee7eebd-20df-4cfd-9315-913b1164a98c" style="width:25%" class="column" data-notion-column-ratio="0.25" dir="auto"><aside class="block-color-orange_background callout" data-notion-callout="" data-notion-callout-icon="🪪" data-notion-callout-background="orange_background" style="white-space:pre-wrap;display:flex" id="697e2b71-0c46-4914-88e5-ccb233a25312" dir="ltr"><div style="font-size:1.5em"><span class="icon" data-emoji="🪪"></span></div><div style="width:100%"><p id="38de7185-18ee-40f9-9b6f-e01f96c62919" class="" dir="auto"><strong>1,136</strong></p><p id="a9f60ba2-b2ec-49f9-95d5-789433156920" class="" dir="auto">Registered bidder logins compromised</p></div></aside></div><div id="5ddccd95-4222-4827-9490-757939356b25" style="width:25%" class="column" data-notion-column-ratio="0.25" dir="auto"><aside class="block-color-yellow_background callout" data-notion-callout="" data-notion-callout-icon="💰" data-notion-callout-background="yellow_background" style="white-space:pre-wrap;display:flex" id="15d1dadf-db54-458e-bce8-9a98a0eab3eb" dir="ltr"><div style="font-size:1.5em"><span class="icon" data-emoji="💰"></span></div><div style="width:100%"><p id="bbd615f2-15d9-44c1-8fb4-8c99c95272f0" class="" dir="auto"><strong>Rs 8–14bn</strong></p><p id="19836e8a-17e1-4ff7-8f75-25e060426b20" class="" dir="auto">Estimated state losses in the parallel cartel case</p></div></aside></div><div id="81a5a3f1-1ed8-4db1-817b-8d6659e8e4be" style="width:25%" class="column" data-notion-column-ratio="0.25" dir="auto"><aside class="block-color-teal_background callout" data-notion-callout="" data-notion-callout-icon="🛡️" data-notion-callout-background="teal_background" style="white-space:pre-wrap;display:flex" id="8724bd7c-2ec2-4c22-bba5-1c4f89dbb0d9" dir="ltr"><div style="font-size:1.5em"><span class="icon" data-emoji="🛡️"></span></div><div style="width:100%"><p id="d5d019e2-79aa-4c6a-a192-996e1fba8caf" class="" dir="auto"><strong>5</strong></p><p id="97192b71-faa6-4686-ae97-97c24c6fc7b4" class="" dir="auto">Safeguards built into the prototype</p></div></aside></div></div><h2 id="c7cf6d19-b421-4c75-90b8-14390e368c3a" class="" dir="auto">Explore the chapter</h2><div id="a6a6475e-01cb-4732-b0eb-799fbae6be50" class="tab" data-notion-tab-container="" dir="ltr"><details id="76a53c17-d668-45f4-b3b2-40bc22e05cf7" open="" class="tab-page" data-notion-tab-page=""><summary>Problem</summary><div class="indented"><blockquote id="9e6c2e19-d58d-4edd-9952-819f769d6ae4" class="block-color-gray_background" data-notion-highlight="gray_background" dir="auto">Digitisation did not eliminate manipulation — it changed its form.</blockquote><details open="" class="block-color-red" data-notion-highlight="red" dir="auto"><summary style="font-weight:600;font-size:1.25em;line-height:1.3;margin:0"><h3 id="5e990b7d-6096-4832-914f-579668f772d2" style="display:inline-block">🔓 The 2026 e-GP breach (technical failure)</h3></summary><div class="indented"><ul id="13fed51b-382c-494c-98a2-b43e19ec082a" class="bulleted-list" dir="auto"><li style="list-style-type:disc">An insider with elevated system access exploited the fact that submitted bid rates were stored in <strong>readable, editable</strong> form before the official bid-opening event.</li></ul><ul id="412c94b7-997e-4bc4-90ac-ad7e4293740f" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Rates were altered across <strong>313 contracts</strong> using the credentials of <strong>1,136 bidders</strong>.</li></ul><ul id="1f5ae83a-dc57-412c-9c4e-2cb5c36f161e" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Attack chain: external <strong>phishing</strong> via a counterfeit portal to harvest credentials + internal <strong>privilege abuse</strong>.</li></ul><ul id="b4abcb48-ecec-458b-80d0-e67e4fc4189b" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Critically, the system <strong>did not detect itself</strong> — the breach surfaced only through an external complaint.</li></ul></div></details><details open="" class="block-color-orange" data-notion-highlight="orange" dir="auto"><summary style="font-weight:600;font-size:1.25em;line-height:1.3;margin:0"><h3 id="f7c68b88-ed26-419f-b969-d6f148aed66e" style="display:inline-block">🤝 The cartel case (non-technical manipulation)</h3></summary><div class="indented"><ul id="35a4fea7-067b-402c-843d-fcb712d691d1" class="bulleted-list" dir="auto"><li style="list-style-type:disc">A PPMO-commissioned report reviewed by CIJ Nepal documented contractors colluding with department officials.</li></ul><ul id="df84de57-b93f-4812-8980-02306df4a880" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Manipulation happened through <strong>legal discretion</strong>: tender packaging and qualification criteria written so only pre-selected firms could qualify.</li></ul><ul id="e840812e-c533-48a6-945f-21882909683f" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Estimated loss to the state: <strong>Rs 8–14 billion</strong>.</li></ul><ul id="b3d3a527-f679-4239-ade7-cef486b3a5a1" class="bulleted-list" dir="auto"><li style="list-style-type:disc">No technical exploit was required — showing that system design alone cannot close every gap.</li></ul></div></details><details open="" class="block-color-blue" data-notion-highlight="blue" dir="auto"><summary style="font-weight:600;font-size:1.25em;line-height:1.3;margin:0"><h3 id="9a8efe2f-1503-4a8d-9f73-271f558afc31" style="display:inline-block">🧩 The structural gap this project targets</h3></summary><div class="indented"><ul id="04e7ee0e-5e72-4bf5-a1e1-265ed3cc42ee" class="to-do-list" dir="auto"><li><input type="checkbox" class="checkbox checkbox-off" disabled=""/> <span class="to-do-children-unchecked">Bid data is not cryptographically protected until opening</span><div class="indented"></div></li></ul><ul id="dcb2afe1-2f35-47db-a9c7-35168baa50fd" class="to-do-list" dir="auto"><li><input type="checkbox" class="checkbox checkbox-off" disabled=""/> <span class="to-do-children-unchecked">Submissions are not immutable</span><div class="indented"></div></li></ul><ul id="6952cb4b-93a4-4222-b924-285dcd31c843" class="to-do-list" dir="auto"><li><input type="checkbox" class="checkbox checkbox-off" disabled=""/> <span class="to-do-children-unchecked">System actions are not independently and continuously audited</span><div class="indented"></div></li></ul><ul id="7960cefb-d2af-4afb-a634-3bcb085487f0" class="to-do-list" dir="auto"><li><input type="checkbox" class="checkbox checkbox-off" disabled=""/> <span class="to-do-children-unchecked">Bidder identity is not strongly bound to a real person or device</span><div class="indented"></div></li></ul><ul id="ffa2ff8e-6200-477c-919a-f56e79d516a0" class="to-do-list" dir="auto"><li><input type="checkbox" class="checkbox checkbox-off" disabled=""/> <span class="to-do-children-unchecked">No automated detection of suspicious bidding patterns</span><div class="indented"></div></li></ul><aside class="block-color-gray_background callout" data-notion-callout="" data-notion-callout-icon="👁️" data-notion-callout-background="gray_background" style="white-space:pre-wrap;display:flex" id="6c3dfbd3-ddc0-4704-a602-b905a50cc5b2" dir="ltr"><div style="font-size:1.5em"><span class="icon" data-emoji="👁️"></span></div><div style="width:100%"><p id="f11abcc2-2ffb-414a-a95a-b20cb0eae3d3" class="" dir="auto">Publicly observable symptom: the platform allows no unauthenticated visibility into bidding activity, so oversight depends on <strong>insider trust</strong> rather than <strong>built-in verifiability</strong>.</p></div></aside></div></details></div></details><details id="a0697ce3-436c-4190-8c34-b3545cba60a1" open="" class="tab-page" data-notion-tab-page=""><summary>Objectives</summary><div class="indented"><ol type="1" id="494b1d0f-fbd3-4695-acef-55697817c1b4" class="numbered-list" start="1" dir="auto"><li><strong>Reverse-auction bidding platform</strong> — automate competitive ranking (lowest valid bid highest), removing a layer of manual, discretionary evaluation.</li></ol><ol type="1" id="c45eec30-5243-428a-b6e6-6d8cb3515761" class="numbered-list" start="2" dir="auto"><li><strong>Encrypted, insert-only bid storage</strong> — bids cannot be read or altered before the deadline, closing the readable-bid and editable-bid loopholes.</li></ol><ol type="1" id="89494caf-2430-4da2-97b3-a40d1cb51967" class="numbered-list" start="3" dir="auto"><li><strong>Append-only, tamper-evident audit log</strong> — every action (tender creation, bid submission, award) recorded with timestamp and actor, so irregularity is system-detectable.</li></ol><ol type="1" id="0b900f98-240f-412d-b0ec-213cfe3f5830" class="numbered-list" start="4" dir="auto"><li><strong>Bidder-identity binding</strong> — device/IP fingerprinting at login and submission, against credential sharing and transferability.</li></ol><ol type="1" id="e59340e2-8a09-420a-ae51-c4d6b4523549" class="numbered-list" start="5" dir="auto"><li><strong>Rule-based anomaly detection</strong> — flags patterns such as repeated narrow undercutting between the same two vendors.</li></ol><ol type="1" id="3a330bda-c9a3-488c-aed8-ac8e740c1fd0" class="numbered-list" start="6" dir="auto"><li><strong>Comparative evaluation</strong> — explicit mapping between documented real-world loopholes and the safeguards implemented here.</li></ol></div></details><details id="295ea0e9-69ac-4eea-befb-9e50ef5bbdd2" open="" class="tab-page" data-notion-tab-page=""><summary>Scope</summary><div class="indented"><div id="b4ef97c5-e433-42b9-9b73-496b6914a8ad" class="column-list" data-notion-column-list="" dir="auto"><div id="d85830d1-4574-4d8a-a8fb-7dfe5a182779" style="width:50%" class="column" data-notion-column-ratio="0.5" dir="auto"><aside class="block-color-teal_background callout" data-notion-callout="" data-notion-callout-icon="✅" data-notion-callout-background="teal_background" style="white-space:pre-wrap;display:flex" id="37b57d75-bb1a-4d43-ba86-0447d60bd6cf" dir="ltr"><div style="font-size:1.5em"><span class="icon" data-emoji="✅"></span></div><div style="width:100%"><p id="fb816f69-4857-4880-b1bb-ead9e29b5e14" class="" dir="auto"><strong>In scope</strong></p><ul id="fd06c502-382b-498b-87cb-c7dbb37dbf4a" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Full tender lifecycle prototype: creation and publishing (admin), vendor registration and bidding, reverse-auction ranking, award decision</li></ul><ul id="0b4501c8-8643-4514-a269-0870097da4cf" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Five safeguards, each mapped to a documented loophole: encrypted bid storage, insert-only submission with hash receipts, append-only audit logging, device/IP identity binding, rule-based collusion flagging</li></ul><ul id="fe4eb13b-12f8-4894-8848-d50fd27c83df" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Demonstration environment (local or free-tier hosted) for academic evaluation and viva</li></ul><ul id="65070582-e6e9-4cf4-aa41-2592cdb59c4e" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Comparative case study against <a href="http://bolpatra.gov.np">bolpatra.gov.np</a> and the 2026 incident</li></ul></div></aside></div><div id="8038177b-5283-483a-9683-43137c4c35b0" style="width:50%" class="column" data-notion-column-ratio="0.5" dir="auto"><aside class="block-color-red_background callout" data-notion-callout="" data-notion-callout-icon="🚫" data-notion-callout-background="red_background" style="white-space:pre-wrap;display:flex" id="3d06ad60-384c-40ad-97d1-06a430449359" dir="ltr"><div style="font-size:1.5em"><span class="icon" data-emoji="🚫"></span></div><div style="width:100%"><p id="53adaa6b-a048-4272-bf52-8e36ca9e56d1" class="" dir="auto"><strong>Out of scope</strong></p><ul id="56f5c9bc-42e7-4620-85a1-19a28a2aaba7" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Real government deployment, legal certification, PPMO integration</li></ul><ul id="8a9e44d9-d671-4ffb-9744-b1e4a370a0c0" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Multi-party key-splitting for bid sealing (single-key model used)</li></ul><ul id="c16fb444-6370-4a9b-90a1-5083b10c7d0b" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Hardware PKI tokens or MFA (device/session binding used instead)</li></ul><ul id="bf22e215-87f9-46fd-aef7-537955d0336e" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Payment gateways, SMS notifications, document/KYC verification</li></ul><ul id="1deb19ba-1a82-41ec-a072-33522991db40" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Infrastructure hardening: penetration testing, code signing, network IDS</li></ul><ul id="796d06a4-9118-4161-b4db-253efdf78d7e" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Institutional, legal and policy reforms from the cartel case</li></ul></div></aside></div></div></div></details><details id="e8a1e094-ae45-446b-819a-79f8200863ca" open="" class="tab-page" data-notion-tab-page=""><summary>Limitations</summary><div class="indented"><details open="" class="" dir="auto"><summary style="font-weight:600;font-size:1.125em;line-height:1.3;margin:0"><h4 id="e42a4adb-b8f4-4a2e-a6e8-0df0192812d9" style="display:inline-block">🔑 Simplified cryptography</h4></summary><div class="indented"><p id="521eb8d8-9573-4b8b-9e01-021079221389" class="" dir="auto">Standard symmetric encryption demonstrates the sealed-bid principle, but a privileged administrator could still technically reach the key — unlike a threshold, key-split production design.</p></div></details><details open="" class="" dir="auto"><summary style="font-weight:600;font-size:1.125em;line-height:1.3;margin:0"><h4 id="344fbe17-c406-4830-a9f5-31b17831658c" style="display:inline-block">🪪 Identity binding, not strong authentication</h4></summary><div class="indented"><p id="a1875acf-1402-45d4-ba68-447e8be6ac75" class="" dir="auto">Device/IP fingerprinting reduces but does not eliminate credential sharing; it is not cryptographically verifiable identity the way PKI digital signatures would be.</p></div></details><details open="" class="" dir="auto"><summary style="font-weight:600;font-size:1.125em;line-height:1.3;margin:0"><h4 id="1dca9b74-024f-4fe1-a4c3-ebe9620f666c" style="display:inline-block">🧱 No infrastructure-layer security testing</h4></summary><div class="indented"><p id="870ee913-2a76-4602-9631-5fab5d6ac9b1" class="" dir="auto">Security scope is the application layer only. Without penetration testing, code auditing or infrastructure hardening, the prototype cannot claim resistance to the server-level backdoor vector used in 2026.</p></div></details><details open="" class="" dir="auto"><summary style="font-weight:600;font-size:1.125em;line-height:1.3;margin:0"><h4 id="74d820a7-edb7-427f-bd67-8eb53771b5c0" style="display:inline-block">📊 Rule-based, not learned, anomaly detection</h4></summary><div class="indented"><p id="a20e26a6-f36b-4a83-9d19-8e6b82997ffa" class="" dir="auto">Fixed statistical thresholds rather than a trained model; false positives and negatives are expected.</p></div></details><details open="" class="" dir="auto"><summary style="font-weight:600;font-size:1.125em;line-height:1.3;margin:0"><h4 id="17d4f8c3-09a5-4110-9c21-c31505688342" style="display:inline-block">🧪 Academic-scale testing only</h4></summary><div class="indented"><p id="8a7a6be6-c713-45be-aa60-02e8718561f8" class="" dir="auto">Untested at real transaction volume, government-scale concurrency, or under genuine adversarial conditions.</p></div></details><details open="" class="" dir="auto"><summary style="font-weight:600;font-size:1.125em;line-height:1.3;margin:0"><h4 id="48512b68-c539-45b0-924d-7317e51e9e0c" style="display:inline-block">⚖️ Non-technical loopholes unaddressed</h4></summary><div class="indented"><p id="f866cbff-04b5-4137-a286-1ff99dc9acaa" class="" dir="auto">Cartel-style manipulation operates through legal discretion in packaging and qualification criteria. This is procedural and legal in nature and is explicitly outside the project&#x27;s design scope.</p></div></details></div></details><details id="c8df16f9-7869-42c3-baeb-48e3c09fa1f3" open="" class="tab-page" data-notion-tab-page=""><summary>Loophole map</summary><div class="indented"><p id="b022cee7-526c-4df0-8ce1-9c132b752eaf" class="" dir="auto">The evaluation deliverable in one table — each real-world failure point against its prototype countermeasure.</p><table id="b31ae5ff-2f71-4f2d-a420-0f4da57af216" class="simple-table" dir="ltr"><thead class="simple-table-header"><tr id="d3428a51-8eb1-41d5-93da-aca1474640a5" dir="ltr"><th id="dI=J" class="simple-table-header-color simple-table-header">#</th><th id="hHJC" class="simple-table-header-color simple-table-header">Documented loophole (real case)</th><th id="CBeY" class="simple-table-header-color simple-table-header">Safeguard in this prototype</th></tr></thead><tbody><tr id="63945e7a-c4ba-4f37-a1d9-84369904fb41" dir="ltr"><td id="dI=J" class="">1</td><td id="hHJC" class="">Bid rates stored readable before opening</td><td id="CBeY" class="">Encrypted bid storage, sealed until the deadline</td></tr><tr id="a6a8cc86-f2d4-4131-abd5-8ea416dd6cb7" dir="ltr"><td id="dI=J" class="">2</td><td id="hHJC" class="">Submitted bids editable before opening</td><td id="CBeY" class="">Insert-only bid table with hash receipt returned to the bidder</td></tr><tr id="076342af-6570-40e0-b2e8-f46081f32480" dir="ltr"><td id="dI=J" class="">3</td><td id="hHJC" class="">No self-detection; surfaced only by external complaint</td><td id="CBeY" class="">Append-only, tamper-evident audit log (action, actor, timestamp)</td></tr><tr id="c1bcd2c5-5814-4807-bd62-80201a14d511" dir="ltr"><td id="dI=J" class="">4</td><td id="hHJC" class="">Phished credentials usable by anyone, anywhere</td><td id="CBeY" class="">Device/IP fingerprint binding at login and at submission</td></tr><tr id="91440d77-479f-4ede-a988-3d4574b8bc62" dir="ltr"><td id="dI=J" class="">5</td><td id="hHJC" class="">No analytics on bidding behaviour</td><td id="CBeY" class="">Rule-based anomaly flagging, e.g. repeated narrow undercutting</td></tr><tr id="8bf0078c-94c5-4312-b2c2-179a3b9983a2" dir="ltr"><td id="dI=J" class="">6</td><td id="hHJC" class="">Manual, discretionary evaluation layer</td><td id="CBeY" class="">Automated reverse-auction ranking of lowest valid bid</td></tr><tr id="364be554-571c-4f8a-8e11-7b78f249861f" dir="ltr"><td id="dI=J" class="">7</td><td id="hHJC" class="">Cartel packaging and qualification criteria</td><td id="CBeY" class=""><strong>Not addressed</strong> — procedural and legal, outside project scope</td></tr></tbody></table></div></details><details id="24bc6083-47ce-405f-83e3-4604485fa3f7" open="" class="tab-page" data-notion-tab-page=""><summary>References</summary><div class="indented"><ul id="3d53c18e-3b35-4e6d-aff8-d670b1cc5b4c" class="bulleted-list" dir="auto"><li style="list-style-type:disc">myRepublica (11 May 2026), &quot;CIB uncovers massive tender manipulation through Nepal&#x27;s e-GP system&quot;</li></ul><ul id="d9d390a2-0ddb-4de2-bec3-6795dacb32ab" class="bulleted-list" dir="auto"><li style="list-style-type:disc">The Rising Nepal (2 May 2026), &quot;CIB exposes serial e-procurement hacking&quot;</li></ul><ul id="e06bbbf8-bc9a-48cb-b24d-3eff9a94abca" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Centre for Investigative Journalism Nepal, &quot;Cartel of contractors in cahoots with govt officials swindle billions of rupees, govt report reveals&quot;</li></ul><ul id="36c84e24-0b44-4b08-b5f6-4475c54fa4fb" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Public Procurement Act, 2007 (Nepal)</li></ul><ul id="4994d29b-a157-4318-a2c5-06f46c75fc7d" class="bulleted-list" dir="auto"><li style="list-style-type:disc">PPMO Country Report (Aug 2024) — Nepal eGP Electronic Government Procurement System</li></ul></div></details></div><h2 id="3d6600cc-c1a8-4e95-b2d6-5a5061fab6be" class="" dir="auto">Viva prep — test yourself</h2><details id="3f57c9de-218e-4adf-9a7c-872c0b13a19e" open="" class="block-color-purple toggle" data-notion-highlight="purple" dir="auto"><summary>Why is a reverse auction appropriate for public tendering?</summary><div class="indented"><p id="d7304230-a463-4e13-be7a-5c389c4e3d55" class="" dir="auto">Procurement seeks the lowest acceptable price, so ranking is objectively computable from the bid value. Automating it removes a discretionary human evaluation step that was one of the manipulation surfaces in the real case.</p></div></details><details id="4764e54c-400f-4d12-9ecc-f4416f5cb2f0" open="" class="block-color-purple toggle" data-notion-highlight="purple" dir="auto"><summary>If the admin holds the encryption key, what has actually been gained?</summary><div class="indented"><p id="7c6bef24-87fb-4c6a-82dd-7b3dd9b0c3a0" class="" dir="auto">The threat model shifts: bids are no longer casually readable or silently editable by anyone with database access, and every access attempt is logged. Full protection would require multi-party key splitting, which is stated as a limitation rather than claimed.</p></div></details><details id="46fc2c99-6eb1-4eb8-9399-40ed42051e78" open="" class="block-color-purple toggle" data-notion-highlight="purple" dir="auto"><summary>What makes the audit log &quot;tamper-evident&quot; rather than just a log?</summary><div class="indented"><p id="6a5390f5-90db-44f6-a8b9-06ca6d0f6126" class="" dir="auto">Entries are append-only and chained by hash, so removing or editing a past entry breaks verification of every later entry — the tampering itself becomes visible.</p></div></details><details id="4ce4148b-db1d-46d5-b1e0-e5c61574d6fd" open="" class="block-color-purple toggle" data-notion-highlight="purple" dir="auto"><summary>Why include a safeguard that admittedly cannot stop cartel behaviour?</summary><div class="indented"><p id="baf18296-b3af-46fd-a04c-5069dda55ff9" class="" dir="auto">Because the honest mapping — five technical loopholes closed, one procedural loophole out of reach — is itself a finding. It shows where system design ends and institutional reform must begin.</p></div></details><h2 id="6a7ac425-d01f-4331-b037-94e500218257" class="" dir="auto">Build checklist</h2><ul id="af3e4b60-cf9f-4109-81ca-0d9e40846db6" class="to-do-list" dir="auto"><li><input type="checkbox" class="checkbox checkbox-off" disabled=""/> <span class="to-do-children-unchecked">Tender creation and publishing (admin)</span><div class="indented"></div></li></ul><ul id="93544a33-fd78-4ebb-bdb8-06bb0269944c" class="to-do-list" dir="auto"><li><input type="checkbox" class="checkbox checkbox-off" disabled=""/> <span class="to-do-children-unchecked">Vendor registration and login with device/IP binding</span><div class="indented"></div></li></ul><ul id="5e138897-470a-447c-8867-3ba268e07bde" class="to-do-list" dir="auto"><li><input type="checkbox" class="checkbox checkbox-off" disabled=""/> <span class="to-do-children-unchecked">Encrypted, insert-only bid submission with hash receipt</span><div class="indented"></div></li></ul><ul id="0172da3c-e0bc-4878-97ef-9417a1d83bbf" class="to-do-list" dir="auto"><li><input type="checkbox" class="checkbox checkbox-off" disabled=""/> <span class="to-do-children-unchecked">Reverse-auction ranking and award decision</span><div class="indented"></div></li></ul><ul id="35fbaebc-841c-4b0a-9be0-f1677f4d9232" class="to-do-list" dir="auto"><li><input type="checkbox" class="checkbox checkbox-off" disabled=""/> <span class="to-do-children-unchecked">Append-only audit log across all actions</span><div class="indented"></div></li></ul><ul id="e1217f34-9f31-4ec6-a826-b8ccc18dc1c5" class="to-do-list" dir="auto"><li><input type="checkbox" class="checkbox checkbox-off" disabled=""/> <span class="to-do-children-unchecked">Rule-based anomaly and collusion flagging</span><div class="indented"></div></li></ul><ul id="64febb8f-9533-410c-af33-2714fa8f3a1d" class="to-do-list" dir="auto"><li><input type="checkbox" class="checkbox checkbox-off" disabled=""/> <span class="to-do-children-unchecked">Comparative case-study write-up and loophole mapping</span><div class="indented"></div></li></ul></div></article><span class="sans" style="font-size:14px;padding-top:2em"></span></body></html>

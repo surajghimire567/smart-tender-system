@@ -8,11 +8,12 @@ from app.database import check_connection
 from app.audit.middleware import AuditMiddleware
 
 # ---- router imports ----
-# [slot: admin import]
+from app.admin.router import router as admin_router
 
 # [slot: vendor import]
 
 # [slot: auction import]
+from app.auction.router import router as auction_router
 
 # [slot: audit import]
 from app.audit.router import router as audit_router
@@ -29,11 +30,11 @@ app.add_middleware(
 app.add_middleware(AuditMiddleware)
 
 # ---- router registration ----
-# [slot: admin router]
+app.include_router(admin_router)
 
 # [slot: vendor router]
 
-# [slot: auction router]
+app.include_router(auction_router)
 
 # [slot: audit router]
 app.include_router(audit_router)
