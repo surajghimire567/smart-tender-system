@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { adminRequest } from "./api.js";
+import { apiRequest } from "../../auth/api.js";
 import Countdown from "./Countdown.jsx";
 import StatusPill from "./StatusPill.jsx";
 import TenderForm from "./TenderForm.jsx";
@@ -15,7 +15,7 @@ export default function AdminDashboard() {
   async function refresh({ backgroundRefresh = false } = {}) {
     setError("");
     try {
-      const rows = await adminRequest("/admin/tenders", { backgroundRefresh });
+      const rows = await apiRequest("/admin/tenders", { backgroundRefresh });
       setTenders(rows);
     } catch (err) {
       setError(err.message);

@@ -1,6 +1,7 @@
 import React from "react";
 import { Navigate } from "react-router-dom";
-import { getRole, ProtectedRoute } from "./deps.jsx";
+import { getRole } from "../../auth/token.js";
+import ProtectedRoute from "../../auth/ProtectedRoute.jsx";
 
 function AdminRoleGate({ children }) {
   return getRole() === "admin" ? children : <Navigate to="/login" replace />;

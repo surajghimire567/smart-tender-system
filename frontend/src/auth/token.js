@@ -19,7 +19,6 @@ export function setSession(token, role) {
 export function clearSession() {
   window.localStorage.removeItem(TOKEN_KEY);
   window.localStorage.removeItem(ROLE_KEY);
-  window.localStorage.removeItem(DEVICE_KEY);
 }
 
 export function getDeviceId() {

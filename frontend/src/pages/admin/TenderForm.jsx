@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { adminRequest } from "./api.js";
+import { apiRequest } from "../../auth/api.js";
 import { fromKathmanduInput, toKathmanduInput } from "../../utils/format.js";
 
 function blankForm() {
@@ -44,11 +44,11 @@ export default function TenderForm({ tender = null, onSaved, onCancel }) {
     };
     try {
       const saved = editing
-        ? await adminRequest(`/admin/tenders/${tender.id}`, {
+        ? await apiRequest(`/admin/tenders/${tender.id}`, {
             method: "PATCH",
             body: JSON.stringify(body),
           })
-        : await adminRequest("/admin/tenders", {
+        : await apiRequest("/admin/tenders", {
             method: "POST",
             body: JSON.stringify(body),
           });

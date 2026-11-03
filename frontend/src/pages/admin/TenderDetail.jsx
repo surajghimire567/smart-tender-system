@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { adminRequest } from "./api.js";
+import { apiRequest } from "../../auth/api.js";
 import Countdown from "./Countdown.jsx";
 import StatusPill from "./StatusPill.jsx";
 import TenderForm from "./TenderForm.jsx";
@@ -19,7 +19,7 @@ export default function TenderDetail() {
   async function refreshTender({ backgroundRefresh = false } = {}) {
     setError("");
     try {
-      const data = await adminRequest(`/admin/tenders/${tenderId}`, { backgroundRefresh });
+      const data = await apiRequest(`/admin/tenders/${tenderId}`, { backgroundRefresh });
       setTender(data);
     } catch (err) {
       setError(err.message);
@@ -37,7 +37,7 @@ export default function TenderDetail() {
     setError("");
     setNotice("");
     try {
-      await adminRequest(path, { method, ...(body ? { body: JSON.stringify(body) } : {}) });
+      await apiRequest(path, { method, ...(body ? { body: JSON.stringify(body) } : {}) });
       setNotice(successMessage);
       await refreshTender();
     } catch (err) {
@@ -50,7 +50,7 @@ export default function TenderDetail() {
   async function loadRanking() {
     setError("");
     try {
-      setRanking(await adminRequest(`/admin/tenders/${tenderId}/ranking`));
+      setRanking(await apiRequest(`/admin/tenders/${tenderId}/ranking`));
     } catch (err) {
       setError(err.message);
     }
@@ -59,7 +59,7 @@ export default function TenderDetail() {
   async function loadFlags() {
     setError("");
     try {
-      setFlags(await adminRequest(`/admin/tenders/${tenderId}/flags`));
+      setFlags(await apiRequest(`/admin/tenders/${tenderId}/flags`));
     } catch (err) {
       setError(err.message);
     }
@@ -140,7 +140,8 @@ export default function TenderDetail() {
             <ul className="flag-list">
               {flags.map((flag) => (
                 <li key={flag.id}>
-                  <strong>Vendor pair #{flag.vendor_id_a} / #{flag.vendor_id_b}</strong>
+                  <strong>{flag.vendor_id_b === null ? `Vendor #${flag.vendor_id_a}` : `Vendor pair #${flag.vendor_id_a} / #${flag.vendor_id_b}`}</strong>
+                  <span>{flag.rule === "high_win_share" ? "High win share" : "Repeated undercutting"}</span>
                   <span>{flag.flag_reason}</span>
                   <time>{formatKathmandu(flag.flagged_at)}</time>
                 </li>

@@ -35,3 +35,19 @@ endpoints are deployed. Alembic registers `app/auction/models.py` for
 autogeneration when present. The shared `Award` model stores the winning bid ID
 and the award service validates that bid against the tender before creating the
 award.
+
+For a closed-tender collusion demo after migrations, run:
+
+    python -m scripts.demo_seed --admin-password "choose-a-demo-password" --vendor-password "choose-a-demo-password"
+
+This creates one admin, three vendors, and three closed tenders. The same vendor
+pair is 1.50%, 1.60%, and 1.80% apart across the tenders. The fixed demo emails
+are printed with the tender IDs. Rerunning the seed reuses the dataset and does
+not create duplicate tenders.
+
+Run the Week 6 authenticated API flow and edge cases in a disposable PostgreSQL
+schema with:
+
+    python -m scripts.week6_e2e
+
+The test runner drops its temporary schema when it finishes.

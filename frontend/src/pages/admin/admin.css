@@ -35,4 +35,24 @@
 .flag-list { display: grid; gap: 10px; padding: 0; list-style: none; }
 .flag-list li { display: grid; gap: 4px; padding: 12px; border-left: 4px solid #d28b19; background: #fff9ec; }
 .flag-list time { color: #66758c; font-size: .88rem; }
+.audit-filters { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); align-items: end; gap: 12px; }
+.audit-filters label { display: grid; gap: 6px; color: #344862; font-size: .9rem; font-weight: 650; }
+.audit-filters input, .audit-filters select { width: 100%; min-height: 40px; padding: 8px 10px; border: 1px solid #bac6d8; border-radius: 7px; background: #fff; color: #17243b; }
+.audit-range { color: #66758c; white-space: nowrap; }
+.audit-pagination { justify-content: flex-end; }
+.admin-page button.secondary:disabled { opacity: .45; cursor: default; }
+.audit-action, .rule-pill { display: inline-flex; padding: 4px 8px; border-radius: 999px; background: #eef2f7; color: #40546f; font-size: .76rem; font-weight: 750; letter-spacing: .02em; white-space: nowrap; }
+.audit-action-device_anomaly { background: #fff0d8; color: #7a4b00; }
+.audit-action-bid_submitted, .audit-action-bid_revised { background: #e4f5ea; color: #176b37; }
+.audit-action-collusion_scan, .rule-repeated_undercutting { background: #fff0d8; color: #7a4b00; }
+.rule-high_win_share { background: #fbe7eb; color: #8b293e; }
+.admin-page details summary { color: #1458a2; cursor: pointer; font-weight: 650; }
+.admin-page details pre { max-width: 26rem; max-height: 15rem; overflow: auto; padding: 10px; border-radius: 7px; background: #f3f6fa; color: #334960; font-size: .76rem; white-space: pre-wrap; overflow-wrap: anywhere; }
+.scan-summary { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin: 18px 0; }
+.scan-summary div { display: grid; gap: 3px; padding: 14px 16px; border: 1px solid #dbe2ed; border-radius: 10px; background: #fff; }
+.scan-summary strong { color: #173b63; font-size: 1.5rem; }
+.scan-summary span { color: #66758c; font-size: .86rem; }
+.flag-evidence { min-width: 20rem; max-width: 40rem; line-height: 1.5; }
 @media (max-width: 700px) { .admin-header, .section-heading { flex-direction: column; } .form-grid, .tender-summary dl { grid-template-columns: 1fr; } .admin-page { padding-inline: 12px; } }
+@media (max-width: 850px) { .audit-filters { grid-template-columns: repeat(2, minmax(0, 1fr)); } .scan-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 480px) { .audit-filters, .scan-summary { grid-template-columns: 1fr; } }

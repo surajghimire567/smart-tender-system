@@ -1,3 +1,5 @@
-# P1 React routes
+# Admin frontend
 
-Mount `AdminRoutes` at `/admin/*` inside the existing React Router tree. See `README_PERSON1.md` at the archive root for the route snippet and Person 2 auth-stub integration note.
+The Vite app mounts AdminRoutes at /admin/*. Admin pages use the shared
+src/auth/api.js client and the real session helpers in src/auth/token.js.
+The admin shell links to tender management, collusion flags, and the audit log.
