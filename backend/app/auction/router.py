@@ -1,19 +1,17 @@
-# app/auction/router.py
-# Day 1 demo routes + Day 2 sealed-bids route + Day 3 submit-bid & receipt routes.
 from datetime import datetime, timezone
+from typing import Literal
 
-from fastapi import APIRouter, Depends, Header, HTTPException, Path, Request
+from fastapi import APIRouter, Depends, Header, HTTPException, Path, Query, Request
 from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.auction import crypto, service
+from app.auction.collusion import MIN_ENTERED, MIN_REPEATS, WIN_SHARE_MIN
 from app.auction.models import Bid
-from app.auction.schemas import BidCreate, BidReceiptOut, ReceiptCheckOut, SealedBidOut
-from app.database import get_db
 from app.auction.schemas import (
-    BidCreate, BidHistoryOut, BidReceiptOut, BidRevise, ReceiptCheckOut, SealedBidOut,
-    TenderRankingOut,
+    BidCreate, BidHistoryOut, BidReceiptOut, BidRevise, CollusionFlagOut, CollusionRunOut,
+    CollusionScanOut, ReceiptCheckOut, SealedBidOut, TenderRankingOut, WinShareScanOut,
 )
 from app.database import get_db
 
@@ -148,3 +146,36 @@ def tender_ranking(tender_id: int = Path(..., gt=0), db: Session = Depends(get_d
         return service.rank_bids(db, tender_id)
     except service.BidRejected as e:
         raise HTTPException(status_code=e.status_code, detail=str(e))   
+
+    # ---- Day 6: collusion rule 1 - repeated 1-2% undercutting between the same vendor pair (L10) ----
+@router.get("/collusion/undercutting", response_model=CollusionScanOut)
+def collusion_undercutting(min_repeats: int = Query(MIN_REPEATS, ge=2, le=20),
+                           db: Session = Depends(get_db)):
+    """Scans every tender whose deadline has passed. Sealed tenders are never opened."""
+    return service.scan_undercutting(db, min_repeats=min_repeats)
+
+
+# ---- Day 6: collusion rule 2 - one vendor wins an unusually high share (read-only, like rule 1) ----
+@router.get("/collusion/win-share", response_model=WinShareScanOut)
+def collusion_win_share(min_share: int = Query(WIN_SHARE_MIN, ge=50, le=100),
+                        min_entered: int = Query(MIN_ENTERED, ge=2, le=50),
+                        db: Session = Depends(get_db)):
+    """Wins / contested tenders entered, per vendor, over every tender whose deadline has passed."""
+    return service.scan_win_share(db, min_share=min_share, min_entered=min_entered)
+
+
+# ---- Day 6: run BOTH rules and SAVE the flags (the only collusion route that writes) ----
+@router.post("/collusion/scan", response_model=CollusionRunOut)
+def collusion_scan(db: Session = Depends(get_db)):
+    """Official thresholds only. New flags are INSERTed; flags saved earlier are never touched."""
+    return service.run_collusion_scan(db)
+
+
+# ---- Day 6: the saved flags (Person 1's dashboard reads this on Day 8) ----
+@router.get("/collusion/flags", response_model=list[CollusionFlagOut])
+def collusion_flags(tender_id: int | None = Query(None, gt=0),
+                    vendor_id: int | None = Query(None, gt=0),
+                    rule: Literal["repeated_undercutting", "high_win_share"] | None = Query(None),
+                    db: Session = Depends(get_db)):
+    """Newest first. Filter by tender, by vendor (either side of a pair) or by rule."""
+    return service.list_flags(db, tender_id=tender_id, vendor_id=vendor_id, rule=rule)

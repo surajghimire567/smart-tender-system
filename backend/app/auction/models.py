@@ -10,7 +10,7 @@ from sqlalchemy import (
     UniqueConstraint, event,text
 )
 from sqlalchemy.orm import Mapped, Session, mapped_column, validates
-from app.auction.db_lock import install_bid_lock
+from app.auction.db_lock import install_bid_lock, install_flags_lock
 from app.database import Base
 
 
@@ -105,3 +105,60 @@ def _block_bulk(state):
         m.class_ is Bid for m in state.all_mappers
     ):
         raise BidLockedError("Bulk UPDATE/DELETE on bids is not allowed.")
+
+    # ---- Day 6: the CollusionFlags table (L10). One row = one rule + one tender + one vendor or pair ----
+class FlagLockedError(Exception):
+    """Raised when code tries to UPDATE or DELETE a saved collusion flag."""
+
+
+class CollusionFlag(Base):
+    __tablename__ = "collusion_flags"
+    __table_args__ = (
+        CheckConstraint("rule IN ('repeated_undercutting', 'high_win_share')", name="ck_flags_rule"),
+        # rule 1 is always about a PAIR of vendors, rule 2 always about ONE vendor
+        CheckConstraint("(rule = 'repeated_undercutting') = (vendor_id_b IS NOT NULL)",
+                        name="ck_flags_rule_shape"),
+        # ids positive; a pair is stored sorted, so (501, 503) and (503, 501) can't both exist
+        CheckConstraint("tender_id > 0 AND vendor_id_a > 0 AND "
+                        "(vendor_id_b IS NULL OR vendor_id_a < vendor_id_b)", name="ck_flags_ids"),
+        # the same flag is saved ONCE however often the scan runs. NULLs never clash in a
+        # UNIQUE index, so the one-vendor rows (vendor_id_b IS NULL) get their own index.
+        Index("uq_flags_pair", "rule", "tender_id", "vendor_id_a", "vendor_id_b",
+              unique=True, postgresql_where=text("vendor_id_b IS NOT NULL")),
+        Index("uq_flags_single", "rule", "tender_id", "vendor_id_a",
+              unique=True, postgresql_where=text("vendor_id_b IS NULL")),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    rule: Mapped[str] = mapped_column(String(40), nullable=False)
+    # plain integers like Bid; real foreign keys to Person 1's tables on Day 8
+    tender_id: Mapped[int] = mapped_column(Integer, nullable=False, index=True)
+    vendor_id_a: Mapped[int] = mapped_column(Integer, nullable=False, index=True)
+    vendor_id_b: Mapped[int | None] = mapped_column(Integer, index=True)   # NULL for rule 2
+    flag_reason: Mapped[str] = mapped_column(Text, nullable=False)          # evidence, no amounts
+    flagged_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+
+# Layer 2 (database): whenever create_all makes collusion_flags, lock it too.
+@event.listens_for(CollusionFlag.__table__, "after_create")
+def _lock_new_flags_table(target, connection, **kw):
+    install_flags_lock(connection)
+
+
+# Layer 1 (Python): a friendly error before the database even sees the statement.
+@event.listens_for(CollusionFlag, "before_update")
+def _block_flag_update(mapper, connection, target):
+    raise FlagLockedError("Collusion flags are insert-only: a saved flag can't be edited.")
+
+
+@event.listens_for(CollusionFlag, "before_delete")
+def _block_flag_delete(mapper, connection, target):
+    raise FlagLockedError("Collusion flags are insert-only: a saved flag can't be deleted.")
+
+
+@event.listens_for(Session, "do_orm_execute")
+def _block_flag_bulk(state):
+    if (state.is_update or state.is_delete) and any(
+        m.class_ is CollusionFlag for m in state.all_mappers
+    ):
+        raise FlagLockedError("Bulk UPDATE/DELETE on collusion_flags is not allowed.")

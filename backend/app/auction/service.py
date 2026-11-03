@@ -4,11 +4,16 @@
 # Day 5: after the deadline, decrypt the current bids and rank them (read-only)
 # Business rules live here, OUT of the router, so the API, the self-tests and
 # (later) pytest all call the same code. Nothing in this file UPDATEs or DELETEs a bid.
+# Day 6: collusion rules 1 + 2 - flag a vendor pair that is repeatedly only 1-2% apart, and a vendor
+#   that wins an unusually high share of its tenders (both read-only); save both rules' flags
+#   in collusion_flags (insert-only).
 from datetime import datetime, timezone
 from decimal import Decimal
 
-from sqlalchemy import exists, select
+from sqlalchemy import exists, or_, select
 from sqlalchemy.exc import IntegrityError
+from app.auction import collusion
+from app.auction.models import Bid, CollusionFlag
 from sqlalchemy.orm import Session, aliased
 
 from app.auction import crypto, tender_rules
@@ -323,3 +328,116 @@ def rank_bids(db: Session, tender_id: int, *, now: datetime | None = None) -> di
         "ranking": ranking,
         "excluded": sorted(excluded, key=lambda x: x["bid_id"]),
     }
+
+# ---- Day 6: collusion rule 1 - repeated 1-2% undercutting between the same pair (L10) ----
+def scan_undercutting(db: Session, *, min_repeats: int = collusion.MIN_REPEATS,
+                      now: datetime | None = None) -> dict:
+    """Rank every tender that may be opened, look at neighbouring bids, flag repeated pairs.
+    Read-only. Each ranking goes through rank_bids(), so the deadline check (L1) cannot be skipped."""
+    now = now or datetime.now(timezone.utc)
+    scanned, events = [], []
+    for tender_id in tender_rules.openable_tender_ids(now):
+        ranking = rank_bids(db, tender_id, now=now)["ranking"]
+        scanned.append(tender_id)
+        events.extend(collusion.close_neighbours(tender_id, ranking))
+
+    flagged = collusion.flag_repeated_pairs(events, min_repeats)
+    return {
+        "rule": "repeated_undercutting",
+        "gap_min_pct": collusion.GAP_MIN, "gap_max_pct": collusion.GAP_MAX,
+        "min_repeats": min_repeats,
+        "scanned_at": now.isoformat(),
+        "tenders_scanned": scanned,
+        "close_gaps_found": len(events),
+        "pairs_flagged": len(flagged),
+        "flagged": flagged,
+    }
+
+
+# ---- Day 6: collusion rule 2 - one vendor wins an unusually high share of its tenders (L10) ----
+def scan_win_share(db: Session, *, min_share: int = collusion.WIN_SHARE_MIN,
+                   min_entered: int = collusion.MIN_ENTERED, now: datetime | None = None) -> dict:
+    """Rank every tender that may be opened, count entries + wins per vendor, flag high win shares.
+    Read-only. Like rule 1, every ranking goes through rank_bids(), so the deadline check (L1) holds."""
+    now = now or datetime.now(timezone.utc)
+    rankings = {t: rank_bids(db, t, now=now)["ranking"] for t in tender_rules.openable_tender_ids(now)}
+    records = collusion.win_records(rankings)
+    flagged = collusion.flag_high_win_share(records, min_share, min_entered)
+    return {
+        "rule": collusion.RULE_WIN_SHARE,
+        "min_share_pct": min_share, "min_entered": min_entered,
+        "min_bidders": collusion.MIN_BIDDERS,
+        "scanned_at": now.isoformat(),
+        "tenders_scanned": sorted(rankings),
+        "contested_tenders": [t for t in sorted(rankings) if len(rankings[t]) >= collusion.MIN_BIDDERS],
+        "vendors_judged": sum(1 for r in records.values() if len(r["entered"]) >= min_entered),
+        "vendors_flagged": len(flagged),
+        "flagged": flagged,
+    }
+
+
+# ---- Day 6: save BOTH rules' flags into collusion_flags (insert-only, never twice) ----
+FLAG_INDEXES = {"uq_flags_pair", "uq_flags_single"}
+
+
+def _flag_saved(db: Session, row: dict) -> bool:
+    """Is this exact flag (rule + tender + vendor/pair) already in the table?"""
+    return bool(db.scalar(select(exists().where(
+        CollusionFlag.rule == row["rule"],
+        CollusionFlag.tender_id == row["tender_id"],
+        CollusionFlag.vendor_id_a == row["vendor_id_a"],
+        CollusionFlag.vendor_id_b.is_not_distinct_from(row["vendor_id_b"]),   # NULL-safe "="
+    ))))
+
+
+def run_collusion_scan(db: Session, *, now: datetime | None = None) -> dict:
+    """Run rule 1 + rule 2 with the OFFICIAL thresholds and INSERT every flag not saved yet.
+    Bids are only read. The only writes are NEW rows in collusion_flags."""
+    now = now or datetime.now(timezone.utc)
+    rule1 = scan_undercutting(db, now=now)            # rule 1: 1-2% apart in >= 3 tenders
+    rule2 = scan_win_share(db, now=now)               # rule 2: won >= 75% of >= 3 contested tenders
+    rows = collusion.flag_rows(rule1["flagged"], rule2["flagged"])
+
+    saved, already = [], 0
+    for row in rows:
+        if _flag_saved(db, row):
+            already += 1                              # an earlier run saved it
+            continue
+        flag = CollusionFlag(**row, flagged_at=now)
+        try:
+            with db.begin_nested():                   # SAVEPOINT: a race undoes only this INSERT
+                db.add(flag)
+        except IntegrityError as e:
+            if _constraint(e) not in FLAG_INDEXES:
+                raise
+            already += 1                              # a parallel run saved it a moment ago
+            continue
+        saved.append(flag)
+    db.commit()
+    for flag in saved:
+        db.refresh(flag)
+
+    return {
+        "scanned_at": now.isoformat(),
+        "tenders_scanned": rule1["tenders_scanned"],
+        "pairs_flagged": rule1["pairs_flagged"],
+        "vendors_flagged": rule2["vendors_flagged"],
+        "flags_found": len(rows),
+        "new_flags": len(saved),
+        "already_saved": already,
+        "saved": saved,
+    }
+
+
+def list_flags(db: Session, *, tender_id: int | None = None, vendor_id: int | None = None,
+               rule: str | None = None) -> list[CollusionFlag]:
+    """Saved flags, newest first. vendor_id matches either side of a pair."""
+    query = select(CollusionFlag).order_by(CollusionFlag.id.desc())
+    if tender_id is not None:
+        query = query.where(CollusionFlag.tender_id == tender_id)
+    if vendor_id is not None:
+        query = query.where(or_(CollusionFlag.vendor_id_a == vendor_id,
+                                CollusionFlag.vendor_id_b == vendor_id))
+    if rule is not None:
+        query = query.where(CollusionFlag.rule == rule)
+    return list(db.scalars(query).all())
