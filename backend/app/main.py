@@ -5,6 +5,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.database import check_connection
+from app.audit.middleware import AuditMiddleware
 
 # ---- router imports ----
 # [slot: admin import]
@@ -14,6 +15,7 @@ from app.database import check_connection
 # [slot: auction import]
 
 # [slot: audit import]
+from app.audit.router import router as audit_router
 
 app = FastAPI(title="Smart Tender System API")
 
@@ -24,6 +26,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+app.add_middleware(AuditMiddleware)
 
 # ---- router registration ----
 # [slot: admin router]
@@ -33,6 +36,7 @@ app.add_middleware(
 # [slot: auction router]
 
 # [slot: audit router]
+app.include_router(audit_router)
 
 
 @app.get("/")
